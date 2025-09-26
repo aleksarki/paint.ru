@@ -504,7 +504,7 @@
              <item>
               <widget class="QPushButton" name="brightnessNegationButton">
                <property name="text">
-                <string>Ярк.</string>
+                <string>Изобр.</string>
                </property>
               </widget>
              </item>
@@ -562,14 +562,14 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="pushButton_12">
+              <widget class="QPushButton" name="horisontalMirrorButton">
                <property name="text">
-                <string>По гогизонтали</string>
+                <string>По горизонтали</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_14">
+              <widget class="QPushButton" name="verticalMirrorButton">
                <property name="text">
                 <string>По вертикали</string>
                </property>
@@ -608,21 +608,21 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="pushButton_9">
+              <widget class="QPushButton" name="rgExchangeButton">
                <property name="text">
                 <string>R-G</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_10">
+              <widget class="QPushButton" name="gbExchangeButton">
                <property name="text">
                 <string>G-B</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_11">
+              <widget class="QPushButton" name="rbExchangeButton">
                <property name="text">
                 <string>R-B</string>
                </property>

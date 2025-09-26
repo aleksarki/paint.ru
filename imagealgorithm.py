@@ -123,3 +123,17 @@ def applyChannelNegation(matrix: np.ndarray, channel: int) -> np.ndarray:
     result = matrix.copy()
     result[:, :, channel] = 255 - result[:, :, channel]
     return result
+
+
+def applyChannelExchange(matrix: np.ndarray, channel1: int, channel2: int) -> np.ndarray:
+    result = matrix.copy()
+    result[:, :, channel1] = matrix[:, :, channel2]
+    result[:, :, channel2] = matrix[:, :, channel1]
+    return result
+
+
+def applyMirror(matrix: np.ndarray, axis: int) -> np.ndarray:
+    if axis == 0:
+        return matrix[::-1]
+    elif axis == 1:
+        return matrix[:, ::-1]

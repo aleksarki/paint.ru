@@ -35,10 +35,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             slider.valueChanged.connect(handler)
             slider.sliderReleased.connect(self.onSliderReleased)
 
-        self.brightnessNegationButton.clicked.connect(self.toggleBrightnessNegation)
-        self.rNegationButton.clicked.connect(self.toggleRedNegation)
-        self.gNegationButton.clicked.connect(self.toggleGreenNegation)
-        self.bNegationButton.clicked.connect(self.toggleBlueNegation)
+        self.brightnessNegationButton.clicked.connect(self.doBrightnessNegation)
+        self.rNegationButton.clicked.connect(self.doRedNegation)
+        self.gNegationButton.clicked.connect(self.doGreenNegation)
+        self.bNegationButton.clicked.connect(self.doBlueNegation)
+
+        self.rgExchangeButton.clicked.connect(lambda: self.exchangeChannels(0, 1))
+        self.gbExchangeButton.clicked.connect(lambda: self.exchangeChannels(1, 2))
+        self.rbExchangeButton.clicked.connect(lambda: self.exchangeChannels(0, 2))
+
+        self.horisontalMirrorButton.clicked.connect(lambda: self.doMirror(0))
+        self.verticalMirrorButton.clicked.connect(lambda: self.doMirror(1))
 
         self.loadImageAction.triggered.connect(self.loadImage)
         self.exitApplicationAction.triggered.connect(self.destroy)
@@ -164,7 +171,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def onSliderReleased(self):
         self.updateInfoImages()
 
-    def toggleBrightnessNegation(self):
+    def doBrightnessNegation(self):
         if self.imgMatrix is None:
             return
         self.imgMatrix = imalg.applyRgbNegation(self.imgMatrix)
@@ -173,7 +180,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
 
-    def toggleRedNegation(self):
+    def doRedNegation(self):
         if self.imgMatrix is None:
             return
         self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 0)
@@ -182,7 +189,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
 
-    def toggleGreenNegation(self):
+    def doGreenNegation(self):
         if self.imgMatrix is None:
             return
         self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 1)
@@ -191,7 +198,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
 
-    def toggleBlueNegation(self):
+    def doBlueNegation(self):
         if self.imgMatrix is None:
             return
         self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 2)
@@ -200,7 +207,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
 
+    def exchangeChannels(self, channel1, channel2):
+        if self.imgMatrix is None:
+            return
+        self.imgMatrix = imalg.applyChannelExchange(self.imgMatrix, channel1, channel2)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+        self.setImagePixmap(self.mainImageLabel, imgPixmap)
+        self.updateInfoImages()
 
+    def doMirror(self, axis):
+        if self.imgMatrix is None:
+            return
+        self.imgMatrix = imalg.applyMirror(self.imgMatrix, axis)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+        self.setImagePixmap(self.mainImageLabel, imgPixmap)
+        self.updateInfoImages()
 
 
 if __name__ == '__main__':
