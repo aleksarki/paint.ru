@@ -1,5 +1,5 @@
-import io
 
+import io
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,6 +34,24 @@ def pixmapFromMatrix(matrix: np.ndarray) -> QPixmap:
     return pixmap
 
 
+def getChannelHistPixmap(matrix: np.ndarray, channel: int, color: str) -> QPixmap:
+    data = matrix[..., channel].flatten()
+    buf = io.BytesIO()
+
+    plt.figure(figsize=(4, 3), dpi=80)
+    plt.hist(data, bins=128, range=(0, 255), color=color)
+    plt.axis('off')
+    plt.xlim(0, 255)
+    plt.savefig(buf, format='png', dpi=80, bbox_inches='tight')
+    plt.close()
+
+    buf.seek(0)
+    image = QImage()
+    image.loadFromData(buf.getvalue())
+    pixmap = QPixmap.fromImage(image)
+    return pixmap
+
+
 def toGrayscale(matrix: np.ndarray) -> np.ndarray:
     assert matrix is not None
     # 0.299 R + 0.587 G + 0.114 B
@@ -51,19 +69,45 @@ def toChannel(matrix: np.ndarray, channel: int) -> np.ndarray:
     return matrix
 
 
-def getChannelHistPixmap(matrix: np.ndarray, channel: int, color: str) -> QPixmap:
-    data = matrix[..., channel].flatten()
-    buf = io.BytesIO()
+def applyBrightness(matrix: np.ndarray, brightness) -> np.ndarray:
+    """ Gamma-correction of brightness. """
+    if brightness == 0:
+        return matrix.copy()
 
-    plt.figure(figsize=(4, 3), dpi=80)
-    plt.hist(data, bins=128, range=(0, 255), color=color)
-    plt.axis('off')
-    plt.xlim(0, 255)
-    plt.savefig(buf, format='png', dpi=80, bbox_inches='tight')
-    plt.close()
+    gamma = 1 - (brightness / 100)  # [-100; 100] -> [2; 0]
 
-    buf.seek(0)
-    image = QImage()
-    image.loadFromData(buf.getvalue())
-    pixmap = QPixmap.fromImage(image)
-    return pixmap
+    normalized = matrix.astype(np.float32) / 255  # [0; 255] -> [0; 1]
+    adjusted = np.power(normalized, gamma)  # gamma correction
+    result = (adjusted * 255).astype(np.uint8)  # [0; 1] -> [0; 255]
+
+    return result
+
+
+def applyChannelAdjustment(matrix: np.ndarray, red, green, blue) -> np.ndarray:
+    """ Add constants to the channels. """
+    if red == 0 and green == 0 and blue == 0:
+        return matrix
+
+    result = matrix.astype(np.int16)  # prevent overflow
+    for channel in range(3):
+        result[:, :, channel] += (red, green, blue)[channel]  # addition of constant
+
+    result = np.clip(result, 0, 255).astype(np.uint8)  # restrict range
+    return result
+
+
+def applyContrast(matrix: np.ndarray, contrast) -> np.ndarray:
+    """ Change contrast. """
+    if contrast == 0:
+        return matrix
+
+    gamma = contrast / 25  # [0; 100] -> [0; 4]
+    normalized = matrix.astype(np.float32) / 255  # [0; 255] -> [0; 1]
+
+    adjusted = 1 / (1 + np.exp(gamma * (.5 - normalized)))  # sigmoid
+
+    blend = gamma / 4  # [0; 1]
+    result = blend * adjusted + (1 - blend) * normalized  # blending
+
+    result = (result * 255).astype(np.uint8)  # [0; 1] -> [0; 255]
+    return result

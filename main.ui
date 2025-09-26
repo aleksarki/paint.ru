@@ -280,12 +280,12 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QSlider" name="horizontalSlider_6">
+                 <widget class="QSlider" name="contrastSlider">
                   <property name="minimum">
-                   <number>-50</number>
+                   <number>0</number>
                   </property>
                   <property name="maximum">
-                   <number>50</number>
+                   <number>100</number>
                   </property>
                   <property name="value">
                    <number>0</number>
@@ -321,12 +321,12 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QSlider" name="horizontalSlider_7">
+                 <widget class="QSlider" name="blueSlider">
                   <property name="minimum">
-                   <number>-50</number>
+                   <number>-100</number>
                   </property>
                   <property name="maximum">
-                   <number>50</number>
+                   <number>100</number>
                   </property>
                   <property name="value">
                    <number>0</number>
@@ -362,12 +362,12 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QSlider" name="horizontalSlider_8">
+                 <widget class="QSlider" name="greenSlider">
                   <property name="minimum">
-                   <number>-50</number>
+                   <number>-100</number>
                   </property>
                   <property name="maximum">
-                   <number>50</number>
+                   <number>100</number>
                   </property>
                   <property name="value">
                    <number>0</number>
@@ -403,12 +403,12 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QSlider" name="horizontalSlider_9">
+                 <widget class="QSlider" name="redSlider">
                   <property name="minimum">
-                   <number>-50</number>
+                   <number>-100</number>
                   </property>
                   <property name="maximum">
-                   <number>50</number>
+                   <number>100</number>
                   </property>
                   <property name="value">
                    <number>0</number>
@@ -444,12 +444,12 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QSlider" name="horizontalSlider_10">
+                 <widget class="QSlider" name="brightnessSlider">
                   <property name="minimum">
-                   <number>-50</number>
+                   <number>-100</number>
                   </property>
                   <property name="maximum">
-                   <number>50</number>
+                   <number>100</number>
                   </property>
                   <property name="value">
                    <number>0</number>
@@ -720,7 +720,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>horizontalSlider_10</sender>
+   <sender>brightnessSlider</sender>
    <signal>sliderMoved(int)</signal>
    <receiver>label_23</receiver>
    <slot>setNum(int)</slot>
@@ -736,7 +736,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>horizontalSlider_9</sender>
+   <sender>redSlider</sender>
    <signal>sliderMoved(int)</signal>
    <receiver>label_22</receiver>
    <slot>setNum(int)</slot>
@@ -752,7 +752,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>horizontalSlider_8</sender>
+   <sender>greenSlider</sender>
    <signal>sliderMoved(int)</signal>
    <receiver>label_21</receiver>
    <slot>setNum(int)</slot>
@@ -768,7 +768,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>horizontalSlider_7</sender>
+   <sender>blueSlider</sender>
    <signal>sliderMoved(int)</signal>
    <receiver>label_20</receiver>
    <slot>setNum(int)</slot>
@@ -784,7 +784,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>horizontalSlider_6</sender>
+   <sender>contrastSlider</sender>
    <signal>sliderMoved(int)</signal>
    <receiver>label_19</receiver>
    <slot>setNum(int)</slot>
