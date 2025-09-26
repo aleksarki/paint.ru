@@ -502,28 +502,28 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="pushButton">
+              <widget class="QPushButton" name="brightnessNegationButton">
                <property name="text">
-                <string>Изобр.</string>
+                <string>Ярк.</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_5">
+              <widget class="QPushButton" name="rNegationButton">
                <property name="text">
                 <string>R</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_6">
+              <widget class="QPushButton" name="gNegationButton">
                <property name="text">
                 <string>G</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_7">
+              <widget class="QPushButton" name="bNegationButton">
                <property name="text">
                 <string>B</string>
                </property>

@@ -111,3 +111,15 @@ def applyContrast(matrix: np.ndarray, contrast) -> np.ndarray:
 
     result = (result * 255).astype(np.uint8)  # [0; 1] -> [0; 255]
     return result
+
+
+def applyRgbNegation(matrix: np.ndarray) -> np.ndarray:
+    """ Negation of all channels. """
+    return 255 - matrix
+
+
+def applyChannelNegation(matrix: np.ndarray, channel: int) -> np.ndarray:
+    """ Negate specific channel. """
+    result = matrix.copy()
+    result[:, :, channel] = 255 - result[:, :, channel]
+    return result

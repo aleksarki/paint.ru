@@ -35,6 +35,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             slider.valueChanged.connect(handler)
             slider.sliderReleased.connect(self.onSliderReleased)
 
+        self.brightnessNegationButton.clicked.connect(self.toggleBrightnessNegation)
+        self.rNegationButton.clicked.connect(self.toggleRedNegation)
+        self.gNegationButton.clicked.connect(self.toggleGreenNegation)
+        self.bNegationButton.clicked.connect(self.toggleBlueNegation)
+
         self.loadImageAction.triggered.connect(self.loadImage)
         self.exitApplicationAction.triggered.connect(self.destroy)
         self.exitApplicationAction.setShortcut('Alt+F4')
@@ -141,21 +146,61 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.contrastValue = value
         self.adjustImage()
 
+    def matrixAdjustmentSequence(self, matrix):
+        adjusted = imalg.applyContrast(matrix, self.contrastValue)
+        adjusted = imalg.applyBrightness(adjusted, self.brightnessValue)
+        adjusted = imalg.applyChannelAdjustment(
+            adjusted, self.redValue, self.greenValue, self.blueValue
+        )
+        return adjusted
+
     def adjustImage(self):
         if self.imgMatrix is None:
             return
-
-        self.imgMatrixAdjusted = imalg.applyContrast(self.imgMatrix, self.contrastValue)
-        self.imgMatrixAdjusted = imalg.applyBrightness(self.imgMatrixAdjusted, self.brightnessValue)
-        self.imgMatrixAdjusted = imalg.applyChannelAdjustment(
-            self.imgMatrixAdjusted, self.redValue, self.greenValue, self.blueValue
-        )
-
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
         imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
 
     def onSliderReleased(self):
         self.updateInfoImages()
+
+    def toggleBrightnessNegation(self):
+        if self.imgMatrix is None:
+            return
+        self.imgMatrix = imalg.applyRgbNegation(self.imgMatrix)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+        self.setImagePixmap(self.mainImageLabel, imgPixmap)
+        self.updateInfoImages()
+
+    def toggleRedNegation(self):
+        if self.imgMatrix is None:
+            return
+        self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 0)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+        self.setImagePixmap(self.mainImageLabel, imgPixmap)
+        self.updateInfoImages()
+
+    def toggleGreenNegation(self):
+        if self.imgMatrix is None:
+            return
+        self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 1)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+        self.setImagePixmap(self.mainImageLabel, imgPixmap)
+        self.updateInfoImages()
+
+    def toggleBlueNegation(self):
+        if self.imgMatrix is None:
+            return
+        self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 2)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+        self.setImagePixmap(self.mainImageLabel, imgPixmap)
+        self.updateInfoImages()
+
+
 
 
 if __name__ == '__main__':
