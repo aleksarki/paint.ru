@@ -19,7 +19,7 @@
      <widget class="QWidget" name="widget" native="true">
       <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
        <item>
-        <widget class="QLabel" name="mainImageLabel">
+        <widget class="ImageLabel" name="mainImageLabel">
          <property name="text">
           <string>Main Image</string>
          </property>
@@ -689,6 +689,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImageLabel</class>
+   <extends>QLabel</extends>
+   <header>imagelabel.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

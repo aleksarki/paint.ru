@@ -1,6 +1,7 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QImage
+from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import *
+
 from main_ui import Ui_MainWindow
 import imagealgorithm as imalg
 

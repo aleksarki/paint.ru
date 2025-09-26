@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file '.\main.ui'
+# Form implementation generated from reading ui file 'main.ui'
 #
 # Created by: PyQt6 UI code generator 6.7.1
 #
@@ -21,7 +21,7 @@ class Ui_MainWindow(object):
         self.widget.setObjectName("widget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.widget)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.mainImageLabel = QtWidgets.QLabel(parent=self.widget)
+        self.mainImageLabel = ImageLabel(parent=self.widget)
         self.mainImageLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.mainImageLabel.setObjectName("mainImageLabel")
         self.verticalLayout.addWidget(self.mainImageLabel)
@@ -364,3 +364,4 @@ class Ui_MainWindow(object):
         self.saveImageAction.setShortcut(_translate("MainWindow", "Ctrl+S"))
         self.exitApplicationAction.setText(_translate("MainWindow", "Выход"))
         self.exitApplicationAction.setToolTip(_translate("MainWindow", "Выход из приложения"))
+from imagelabel import ImageLabel
