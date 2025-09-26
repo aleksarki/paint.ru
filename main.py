@@ -68,7 +68,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if dial.exec():
             file = dial.selectedFiles()[0]
             self.imgPath = file
-            self.imgMatrix = imalg.loadImage(file)
+            self.imgMatrix = imalg.loadImagePixmap(file)
             self.imgPixmap = imalg.pixmapFromMatrix(self.imgMatrix)
             self.setImagePixmap(self.mainImageLabel, self.imgPixmap)
             self.mainImageLabel.setImageMatrix(self.imgMatrix)
@@ -91,16 +91,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             bluePixmap = imalg.pixmapFromMatrix(blueMatrix)
             self.setImagePixmap(self.blueImageLabel, bluePixmap)
 
-            redHistPixmap = imalg.getChannelHist(self.imgMatrix, 0, 'red')
+            redHistPixmap = imalg.getChannelHistPixmap(self.imgMatrix, 0, 'red')
             self.setImagePixmap(self.redHistLabel, redHistPixmap)
 
-            greenHistPixmap = imalg.getChannelHist(self.imgMatrix, 1, 'green')
+            greenHistPixmap = imalg.getChannelHistPixmap(self.imgMatrix, 1, 'green')
             self.setImagePixmap(self.greenHistLabel, greenHistPixmap)
 
-            blueHistPixmap = imalg.getChannelHist(self.imgMatrix, 2, 'blue')
+            blueHistPixmap = imalg.getChannelHistPixmap(self.imgMatrix, 2, 'blue')
             self.setImagePixmap(self.blueHistLabel, blueHistPixmap)
-
-
 
             self.statusbar.showMessage(f"Изображение загружено: {file}")
 
