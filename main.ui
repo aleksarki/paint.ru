@@ -187,6 +187,27 @@
            </widget>
           </item>
           <item>
+           <widget class="QLabel" name="pointerIntensityLabel">
+            <property name="text">
+             <string>Pointer Intensity Label</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="windowAverageLabel">
+            <property name="text">
+             <string>Window Avg Label</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="windowStdDevLabel">
+            <property name="text">
+             <string>Window Std Label</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="Line" name="line">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>

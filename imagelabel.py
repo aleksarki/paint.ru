@@ -1,11 +1,13 @@
+import numpy as np
 from PyQt6.QtCore import QRect, pyqtSignal, Qt
 from PyQt6.QtGui import QPainter, QPen, QColor
 from PyQt6.QtWidgets import QLabel
 
 
 class ImageLabel(QLabel):
-    # signal to transfer coords and rgb
-    mouseMoved = pyqtSignal(int, int, int, int, int)  # x, y, r, g, b
+    # signal to transfer pixel coords, rgb, & other
+    # x, y, r, g, b, intensity, window avg, window std
+    mouseMoved = pyqtSignal(int, int, int, int, int, float, float, float)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -27,7 +29,9 @@ class ImageLabel(QLabel):
             img_x, img_y = self.getImageCoordinates(event.pos())  # mouse coords to image coords
             if img_x is not None and img_y is not None:
                 r, g, b = self.imageMatrix[img_y, img_x]
-                self.mouseMoved.emit(img_x, img_y, r, g, b)  # send signal
+                intensity = (r + g + b) / 3.0
+                window_avg, window_std = self.calculateWindowStatistics(img_x, img_y)
+                self.mouseMoved.emit(img_x, img_y, r, g, b, intensity, window_avg, window_std)  # send signal
 
         super().mouseMoveEvent(event)
 
@@ -62,6 +66,33 @@ class ImageLabel(QLabel):
 
         return None, None
 
+    def calculateWindowStatistics(self, center_x, center_y):
+        """ Calculate avg and std for 11x11 window. """
+        if self.imageMatrix is None:
+            return .0, .0
+
+        half_size = self.windowSize // 2
+
+        # Вычисляем границы окна с проверкой выхода за границы
+        x_start = max(0, center_x - half_size)
+        y_start = max(0, center_y - half_size)
+        x_end = min(self.imageMatrix.shape[1], center_x + half_size + 1)
+        y_end = min(self.imageMatrix.shape[0], center_y + half_size + 1)
+
+        # Извлекаем окно
+        window = self.imageMatrix[y_start:y_end, x_start:x_start + (x_end - x_start)]
+
+        if window.size == 0:
+            return .0, .0
+
+        # усреднение для вычисления статистики
+        window_gray = np.mean(window, axis=2)
+
+        window_avg = np.mean(window_gray)
+        window_std = np.std(window_gray)
+
+        return float(window_avg), float(window_std)
+
     def leaveEvent(self, event):
         self.mousePos = None
         self.update()
@@ -78,13 +109,11 @@ class ImageLabel(QLabel):
             pen.setWidth(1)
             painter.setPen(pen)
 
-            size = 11
-
             rect = QRect(
-                self.mousePos.x() - size // 2,
-                self.mousePos.y() - size // 2,
-                size,
-                size
+                self.mousePos.x() - self.windowSize // 2,
+                self.mousePos.y() - self.windowSize // 2,
+                self.windowSize,
+                self.windowSize
             )
 
             painter.drawRect(rect)

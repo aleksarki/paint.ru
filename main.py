@@ -16,7 +16,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.imgMatrix = None
 
         self.mainImageLabel.mouseMoved.connect(self.updatePointerInfo)
-        self.updatePointerInfo(*[None] * 5)
+        self.updatePointerInfo(*[None] * 8)
         self.updateImageInfo()
 
         self.loadImageAction.triggered.connect(self.loadImage)
@@ -33,14 +33,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.statLabel.setText("Размер: Н/Д")
 
-    def updatePointerInfo(self, x, y, r, g, b):
-        """ Update info labels about pointed pixel. """
-        if any((x is None, y is None, r is None, g is None, b is None)):
+    def updatePointerInfo(self, x, y, r, g, b, intensity, window_avg, window_std):
+        """ Update info labels about pointed pixel and its window. """
+        if any((x is None, y is None, r is None, g is None, b is None,
+                intensity is None, window_avg is None, window_std is None)):
             self.pointerPositionLabel.setText(f"Позиция: Н/Д")
             self.pointerRgbLabel.setText(f"RGB: Н/Д")
+            self.pointerIntensityLabel.setText(f"Интенсивность: Н/Д")
+            self.windowAverageLabel.setText(f"Среднее окна: Н/Д")
+            self.windowStdDevLabel.setText(f"Ст. отклонение: Н/Д")
         else:
             self.pointerPositionLabel.setText(f"Позиция: ({x}, {y})")
             self.pointerRgbLabel.setText(f"RGB: ({r}, {g}, {b})")
+            self.pointerIntensityLabel.setText(f"Интенсивность: {intensity:.2f}")
+            self.windowAverageLabel.setText(f"Среднее окна: {window_avg:.2f}")
+            self.windowStdDevLabel.setText(f"Ст. отклонение: {window_std:.2f}")
 
     @staticmethod
     def setImagePixmap(label: QLabel, pixmap: QPixmap):
