@@ -15,10 +15,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.imgPixmap = None
         self.imgMatrix = None
 
+        self.mainImageLabel.mouseMoved.connect(self.updatePointerInfo)
+        self.updatePointerInfo(*[None] * 5)
+        self.updateImageInfo()
+
         self.loadImageAction.triggered.connect(self.loadImage)
         self.exitApplicationAction.triggered.connect(self.destroy)
         self.exitApplicationAction.setShortcut('Alt+F4')
+
         self.statusbar.showMessage("Готово!")
+
+    def updateImageInfo(self):
+        """ Update info labels about image dimensions. """
+        if self.imgMatrix is not None:
+            height, width, channels = self.imgMatrix.shape
+            self.statLabel.setText(f"Размер: {width}×{height}×{channels}")
+        else:
+            self.statLabel.setText("Размер: Н/Д")
+
+    def updatePointerInfo(self, x, y, r, g, b):
+        """ Update info labels about pointed pixel. """
+        if any((x is None, y is None, r is None, g is None, b is None)):
+            self.pointerPositionLabel.setText(f"Позиция: Н/Д")
+            self.pointerRgbLabel.setText(f"RGB: Н/Д")
+        else:
+            self.pointerPositionLabel.setText(f"Позиция: ({x}, {y})")
+            self.pointerRgbLabel.setText(f"RGB: ({r}, {g}, {b})")
 
     @staticmethod
     def setImagePixmap(label: QLabel, pixmap: QPixmap):
@@ -42,6 +64,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.imgMatrix = imalg.loadImage(file)
             self.imgPixmap = imalg.pixmapFromMatrix(self.imgMatrix)
             self.setImagePixmap(self.mainImageLabel, self.imgPixmap)
+            self.mainImageLabel.setImageMatrix(self.imgMatrix)
+
+            self.updateImageInfo()
 
             grayMatrix = imalg.toGrayscale(self.imgMatrix)
             grayPixmap = imalg.pixmapFromMatrix(grayMatrix)

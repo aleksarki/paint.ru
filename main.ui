@@ -166,21 +166,21 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="statLabel">
             <property name="text">
              <string>Stat Label</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="pointerPositionLabel">
             <property name="text">
              <string>Pointer Position Label</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_2">
+           <widget class="QLabel" name="pointerRgbLabel">
             <property name="text">
              <string>Pointer RGB Label</string>
             </property>
