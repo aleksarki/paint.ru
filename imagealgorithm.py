@@ -137,3 +137,23 @@ def applyMirror(matrix: np.ndarray, axis: int) -> np.ndarray:
         return matrix[::-1]
     elif axis == 1:
         return matrix[:, ::-1]
+
+
+def applyNeighbourAverage(matrix: np.ndarray) -> np.ndarray:
+    result = np.zeros_like(matrix.astype(np.int16), dtype=np.uint16)
+    height, width, channels = matrix.shape
+    for channel in range(channels):
+        for y in range(1, height - 1):
+            for x in range(1, width - 1):  # besides border pixels
+                print(y, x, channel)
+                total = 0
+                for dy in -1, 0, 1:
+                    for dx in -1, 0, 1:
+                        total += matrix[y + dy, x + dx, channel] // 9
+                result[y, x, channel] = total
+    # process borders
+    result[0, :, :] = matrix[0, :, :]
+    result[height - 1, :, :] = matrix[height - 1, :, :]
+    result[:, 0, :] = matrix[:, 0, :]
+    result[:, width - 1, :] = matrix[:, width - 1, :]
+    return result.astype(np.uint8)

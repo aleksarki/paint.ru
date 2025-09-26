@@ -46,6 +46,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.horisontalMirrorButton.clicked.connect(lambda: self.doMirror(0))
         self.verticalMirrorButton.clicked.connect(lambda: self.doMirror(1))
+        self.neighbourAverageButton.clicked.connect(self.doNeighbourAverage)
 
         self.loadImageAction.triggered.connect(self.loadImage)
         self.exitApplicationAction.triggered.connect(self.destroy)
@@ -57,7 +58,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """ Update info labels about image dimensions. """
         if self.imgMatrix is not None:
             height, width, channels = self.imgMatrix.shape
-            self.statLabel.setText(f"Размер: {width}×{height}×{channels}")
+            self.statLabel.setText(f"Размер: {height}×{width}×{channels}")
         else:
             self.statLabel.setText("Размер: Н/Д")
 
@@ -220,6 +221,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.imgMatrix is None:
             return
         self.imgMatrix = imalg.applyMirror(self.imgMatrix, axis)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+        self.setImagePixmap(self.mainImageLabel, imgPixmap)
+        self.updateInfoImages()
+
+    def doNeighbourAverage(self):
+        if self.imgMatrix is None:
+            return
+        self.imgMatrix = imalg.applyNeighbourAverage(self.imgMatrix)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
         imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
         self.setImagePixmap(self.mainImageLabel, imgPixmap)

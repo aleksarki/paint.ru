@@ -17,7 +17,7 @@
    <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,2">
     <item>
      <widget class="QWidget" name="widget" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="1">
        <item>
         <widget class="ImageLabel" name="mainImageLabel">
          <property name="text">
@@ -28,22 +28,70 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QLabel" name="imageInfoLabel">
-         <property name="text">
-          <string>Image Info</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
     <item>
      <widget class="QWidget" name="widget_2" native="true">
       <layout class="QGridLayout" name="gridLayout">
+       <item row="2" column="0">
+        <widget class="QGroupBox" name="blueBox">
+         <property name="title">
+          <string>Синий (B)</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="blueImageLabel">
+            <property name="text">
+             <string>Blue Image</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="blueHistLabel">
+            <property name="text">
+             <string>Blue Hist</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="greenBox">
+         <property name="title">
+          <string>Зелёный (G)</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="greenImageLabel">
+            <property name="text">
+             <string>Green Image</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="greenHistLabel">
+            <property name="text">
+             <string>Green Hist</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QGroupBox" name="redBox">
          <property name="title">
@@ -83,64 +131,6 @@
            <widget class="QLabel" name="blackWhiteImageLabel">
             <property name="text">
              <string>Black &amp; White Image</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QGroupBox" name="greenBox">
-         <property name="title">
-          <string>Зелёный (G)</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QLabel" name="greenImageLabel">
-            <property name="text">
-             <string>Green Image</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="greenHistLabel">
-            <property name="text">
-             <string>Green Hist</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QGroupBox" name="blueBox">
-         <property name="title">
-          <string>Синий (B)</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="blueImageLabel">
-            <property name="text">
-             <string>Blue Image</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="blueHistLabel">
-            <property name="text">
-             <string>Blue Hist</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -632,6 +622,20 @@
            </widget>
           </item>
           <item>
+           <widget class="Line" name="line_13">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="neighbourAverageButton">
+            <property name="text">
+             <string>Усреднение соседних пикселей</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -670,13 +674,7 @@
     <addaction name="separator"/>
     <addaction name="exitApplicationAction"/>
    </widget>
-   <widget class="QMenu" name="transformMenu">
-    <property name="title">
-     <string>Преобразования</string>
-    </property>
-   </widget>
    <addaction name="fileMenu"/>
-   <addaction name="transformMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="loadImageAction">
