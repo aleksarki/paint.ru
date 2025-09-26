@@ -49,6 +49,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.neighbourAverageButton.clicked.connect(self.doNeighbourAverage)
 
         self.loadImageAction.triggered.connect(self.loadImage)
+        self.saveImageAction.triggered.connect(self.saveImage)
         self.exitApplicationAction.triggered.connect(self.destroy)
         self.exitApplicationAction.setShortcut('Alt+F4')
 
@@ -123,7 +124,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if dial.exec():
             file = dial.selectedFiles()[0]
             self.imgPath = file
-            self.imgMatrix = imalg.loadImagePixmap(file)
+            self.imgMatrix = imalg.loadImageMatrix(file)
             self.imgMatrixAdjusted = self.imgMatrix
             imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
             self.setImagePixmap(self.mainImageLabel, imgPixmap)
@@ -133,6 +134,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.updateInfoImages()
 
             self.statusbar.showMessage(f"Изображение загружено: {file}")
+
+    def saveImage(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+
+        path, selectedFilter = QFileDialog.getSaveFileName(
+            self,
+            "Сохранить изображение",
+            "",  # folder
+            "PNG Images (*.png)"
+        )
+        if not path:
+            return
+
+        if not path.lower().endswith('.png'):
+            path += '.png'
+
+        success = imalg.saveImageMatrix(path, self.imgMatrixAdjusted)
+        if success:
+            self.statusbar.showMessage(f"Сохранено изображение {path}")
+        else:
+            self.statusbar.showMessage("Ошибка сохранения")
 
     def onBrightnessChanged(self, value):
         self.brightnessValue = value
@@ -174,6 +198,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def doBrightnessNegation(self):
         if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
             return
         self.imgMatrix = imalg.applyRgbNegation(self.imgMatrix)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
@@ -183,6 +208,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def doRedNegation(self):
         if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
             return
         self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 0)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
@@ -192,6 +218,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def doGreenNegation(self):
         if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
             return
         self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 1)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
@@ -201,6 +228,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def doBlueNegation(self):
         if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
             return
         self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 2)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
@@ -210,6 +238,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def exchangeChannels(self, channel1, channel2):
         if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
             return
         self.imgMatrix = imalg.applyChannelExchange(self.imgMatrix, channel1, channel2)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
@@ -219,6 +248,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def doMirror(self, axis):
         if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
             return
         self.imgMatrix = imalg.applyMirror(self.imgMatrix, axis)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
@@ -228,6 +258,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def doNeighbourAverage(self):
         if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
             return
         self.imgMatrix = imalg.applyNeighbourAverage(self.imgMatrix)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)

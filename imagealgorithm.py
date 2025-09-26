@@ -6,7 +6,7 @@ import numpy as np
 from PyQt6.QtGui import QImage, QPixmap
 
 
-def loadImagePixmap(path: str) -> np.ndarray:
+def loadImageMatrix(path: str) -> np.ndarray:
     """ Load image file, get matrix. """
     matrix = cv2.imread(path)
     assert matrix is not None
@@ -14,6 +14,17 @@ def loadImagePixmap(path: str) -> np.ndarray:
     assert (len(shape) == 3) and (shape[2] == 3)
     matrix = cv2.cvtColor(matrix, cv2.COLOR_BGR2RGB)
     return matrix
+
+
+def saveImageMatrix(path: str, matrix: np.ndarray) -> bool:
+    """ Save image matrix as png. """
+    try:
+        shape = matrix.shape
+        assert (len(shape) == 3) and (shape[2] == 3)
+        matrix_bgr = cv2.cvtColor(matrix, cv2.COLOR_RGB2BGR)
+        return cv2.imwrite(path, matrix_bgr, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+    except:
+        return False
 
 
 def pixmapFromMatrix(matrix: np.ndarray) -> QPixmap:
