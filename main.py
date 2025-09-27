@@ -36,9 +36,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             slider.sliderReleased.connect(self.onSliderReleased)
 
         self.brightnessNegationButton.clicked.connect(self.doBrightnessNegation)
-        self.rNegationButton.clicked.connect(self.doRedNegation)
-        self.gNegationButton.clicked.connect(self.doGreenNegation)
-        self.bNegationButton.clicked.connect(self.doBlueNegation)
+        self.pillowNegationButton.clicked.connect(self.doBrightnessNegationPIL)
+        self.rNegationButton.clicked.connect(lambda: self.doChannelNegation(0))
+        self.gNegationButton.clicked.connect(lambda: self.doChannelNegation(1))
+        self.bNegationButton.clicked.connect(lambda: self.doChannelNegation(2))
 
         self.rgExchangeButton.clicked.connect(lambda: self.exchangeChannels(0, 1))
         self.gbExchangeButton.clicked.connect(lambda: self.exchangeChannels(1, 2))
@@ -178,6 +179,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.contrastValue = value
         self.adjustImage()
 
+    def adjustImage(self):
+        if self.imgMatrix is None:
+            return
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+        self.setImagePixmap(self.mainImageLabel, imgPixmap)
+
     def matrixAdjustmentSequence(self, matrix):
         adjusted = imalg.applyContrast(matrix, self.contrastValue)
         adjusted = imalg.applyBrightness(adjusted, self.brightnessValue)
@@ -185,13 +193,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             adjusted, self.redValue, self.greenValue, self.blueValue
         )
         return adjusted
-
-    def adjustImage(self):
-        if self.imgMatrix is None:
-            return
-        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
-        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
-        self.setImagePixmap(self.mainImageLabel, imgPixmap)
 
     def onSliderReleased(self):
         self.updateInfoImages()
@@ -205,36 +206,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
+        self.statusbar.showMessage("Негатив")
 
-    def doRedNegation(self):
+    def doBrightnessNegationPIL(self):
         if self.imgMatrix is None:
             self.statusbar.showMessage("Нет открытого изображения")
             return
-        self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 0)
+        self.imgMatrix = imalg.applyRgbNegation(self.imgMatrix)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
         imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
+        self.statusbar.showMessage("Негатив (Pillow)")
 
-    def doGreenNegation(self):
+    def doChannelNegation(self, channel):
         if self.imgMatrix is None:
             self.statusbar.showMessage("Нет открытого изображения")
             return
-        self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 1)
+        self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, channel)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
         imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
-
-    def doBlueNegation(self):
-        if self.imgMatrix is None:
-            self.statusbar.showMessage("Нет открытого изображения")
-            return
-        self.imgMatrix = imalg.applyChannelNegation(self.imgMatrix, 2)
-        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
-        imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
-        self.setImagePixmap(self.mainImageLabel, imgPixmap)
-        self.updateInfoImages()
+        self.statusbar.showMessage(f"Негатив канала {channel}")
 
     def exchangeChannels(self, channel1, channel2):
         if self.imgMatrix is None:
@@ -245,6 +239,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
+        self.statusbar.showMessage(f"Обмен каналов {channel1}, {channel2}")
 
     def doMirror(self, axis):
         if self.imgMatrix is None:
@@ -255,6 +250,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
+        self.statusbar.showMessage(f"Отражение по оси {axis}")
 
     def doNeighbourAverage(self):
         if self.imgMatrix is None:
@@ -265,6 +261,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
+        self.statusbar.showMessage("Усреднение соседних пикселей")
 
 
 if __name__ == '__main__':

@@ -636,6 +636,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pillowNegationButton">
+            <property name="text">
+             <string>Негатив изображения (Pillow)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>

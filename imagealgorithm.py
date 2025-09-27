@@ -3,6 +3,7 @@ import io
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import PIL
 from PyQt6.QtGui import QImage, QPixmap
 
 
@@ -86,7 +87,6 @@ def applyBrightness(matrix: np.ndarray, brightness) -> np.ndarray:
         return matrix.copy()
 
     gamma = 1 - (brightness / 100)  # [-100; 100] -> [2; 0]
-
     normalized = matrix.astype(np.float32) / 255  # [0; 255] -> [0; 1]
     adjusted = np.power(normalized, gamma)  # gamma correction
     result = (adjusted * 255).astype(np.uint8)  # [0; 1] -> [0; 255]
@@ -116,7 +116,6 @@ def applyContrast(matrix: np.ndarray, contrast) -> np.ndarray:
     normalized = matrix.astype(np.float32) / 255  # [0; 255] -> [0; 1]
 
     adjusted = 1 / (1 + np.exp(gamma * (.5 - normalized)))  # sigmoid
-
     blend = gamma / 4  # [0; 1]
     result = blend * adjusted + (1 - blend) * normalized  # blending
 
@@ -127,6 +126,13 @@ def applyContrast(matrix: np.ndarray, contrast) -> np.ndarray:
 def applyRgbNegation(matrix: np.ndarray) -> np.ndarray:
     """ Negation of all channels. """
     return 255 - matrix
+
+
+def applyRgbNegationPIL(matrix: np.ndarray) -> np.ndarray:
+    image = PIL.Image.fromarray(matrix)
+    negated = PIL.ImageOps.invert(image)
+    result = np.array(negated)
+    return result
 
 
 def applyChannelNegation(matrix: np.ndarray, channel: int) -> np.ndarray:
