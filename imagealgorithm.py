@@ -66,12 +66,12 @@ def getChannelHistPixmap(matrix: np.ndarray, channel: int, color: str) -> QPixma
 
 def toGrayscale(matrix: np.ndarray) -> np.ndarray:
     assert matrix is not None
-    # 0.299 R + 0.587 G + 0.114 B
-    grayMatrix = np.dot(matrix[..., :3], [.299, .587, .114]).astype(np.uint8)
+    grayMatrix = np.dot(matrix[..., :], [.2125, .7154, .0721]).astype(np.uint8)  # 0.2125 R + 0.7154 G + 0.0721 B
     return grayMatrix
 
 
 def toChannel(matrix: np.ndarray, channel: int) -> np.ndarray:
+    """ Return specific channel. """
     assert matrix is not None
     assert len(matrix.shape) == 3
     matrix = matrix.copy()
@@ -112,11 +112,11 @@ def applyContrast(matrix: np.ndarray, contrast) -> np.ndarray:
     if contrast == 0:
         return matrix
 
-    gamma = contrast / 25  # [0; 100] -> [0; 4]
+    gamma = contrast / 1  # [0; 100] -> [0; 4]
     normalized = matrix.astype(np.float32) / 255  # [0; 255] -> [0; 1]
 
     adjusted = 1 / (1 + np.exp(gamma * (.5 - normalized)))  # sigmoid
-    blend = gamma / 4  # [0; 1]
+    blend = gamma / 100  # [0; 1]
     result = blend * adjusted + (1 - blend) * normalized  # blending
 
     result = (result * 255).astype(np.uint8)  # [0; 1] -> [0; 255]

@@ -15,7 +15,6 @@ class ImageLabel(QLabel):
         self.windowSize = 11
         self.imageMatrix = None
         self.setMouseTracking(True)
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def setImageMatrix(self, matrix):
         self.imageMatrix = matrix
@@ -44,7 +43,7 @@ class ImageLabel(QLabel):
         label_size = self.size()
         pixmap_size = pixmap.size()
 
-        # Вычисляем область отображения pixmap (центрирован)
+        # Вычисление области отображения pixmap
         pixmap_rect = QRect(
             (label_size.width() - pixmap_size.width()) // 2,
             (label_size.height() - pixmap_size.height()) // 2,
@@ -52,13 +51,13 @@ class ImageLabel(QLabel):
             pixmap_size.height()
         )
 
-        # Проверяем, находится ли мышь в области изображения
+        # Находится ли мышь в области изображения
         if pixmap_rect.contains(mouse_pos):
-            # Преобразуем координаты мыши в координаты изображения
+            # Координаты мыши в координаты изображения
             img_x = int((mouse_pos.x() - pixmap_rect.x()) * self.imageMatrix.shape[1] / pixmap_rect.width())
             img_y = int((mouse_pos.y() - pixmap_rect.y()) * self.imageMatrix.shape[0] / pixmap_rect.height())
 
-            # Ограничиваем координаты размерами изображения
+            # Ограничение координат размерами изображения
             img_x = max(0, min(img_x, self.imageMatrix.shape[1] - 1))
             img_y = max(0, min(img_y, self.imageMatrix.shape[0] - 1))
 
