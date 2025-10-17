@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1021</width>
-    <height>740</height>
+    <height>755</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -681,7 +681,35 @@
     <addaction name="separator"/>
     <addaction name="exitApplicationAction"/>
    </widget>
+   <widget class="QMenu" name="chromaMenu">
+    <property name="title">
+     <string>Цветность</string>
+    </property>
+    <addaction name="logatithmTransformAction"/>
+    <addaction name="exponentTransformAction"/>
+    <addaction name="binaryTransformAction"/>
+    <addaction name="brightnessRangeAction"/>
+   </widget>
+   <widget class="QMenu" name="somoothMenu">
+    <property name="title">
+     <string>Сглаживание</string>
+    </property>
+    <addaction name="rectangleFilterAction"/>
+    <addaction name="medianFilterAction"/>
+    <addaction name="gaussFilterAction"/>
+    <addaction name="sigmaFilterAction"/>
+    <addaction name="absoluteDiffAction"/>
+   </widget>
+   <widget class="QMenu" name="sharpnessMenu">
+    <property name="title">
+     <string>Резкость</string>
+    </property>
+    <addaction name="blurredMaskingAction"/>
+   </widget>
    <addaction name="fileMenu"/>
+   <addaction name="chromaMenu"/>
+   <addaction name="somoothMenu"/>
+   <addaction name="sharpnessMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="loadImageAction">
@@ -712,6 +740,56 @@
    </property>
    <property name="toolTip">
     <string>Выход из приложения</string>
+   </property>
+  </action>
+  <action name="logatithmTransformAction">
+   <property name="text">
+    <string>Логарифмическое преобразование</string>
+   </property>
+  </action>
+  <action name="exponentTransformAction">
+   <property name="text">
+    <string>Степенное преобразование</string>
+   </property>
+  </action>
+  <action name="binaryTransformAction">
+   <property name="text">
+    <string>Бинарное преобразование</string>
+   </property>
+  </action>
+  <action name="brightnessRangeAction">
+   <property name="text">
+    <string>Вырезание диапазона яркостей</string>
+   </property>
+  </action>
+  <action name="rectangleFilterAction">
+   <property name="text">
+    <string>Прямоугольный фильтр</string>
+   </property>
+  </action>
+  <action name="medianFilterAction">
+   <property name="text">
+    <string>Медианный фильтр</string>
+   </property>
+  </action>
+  <action name="gaussFilterAction">
+   <property name="text">
+    <string>Фильтр Гаусса</string>
+   </property>
+  </action>
+  <action name="sigmaFilterAction">
+   <property name="text">
+    <string>Сигма-фильтр</string>
+   </property>
+  </action>
+  <action name="absoluteDiffAction">
+   <property name="text">
+    <string>Карта абсолютной разности</string>
+   </property>
+  </action>
+  <action name="blurredMaskingAction">
+   <property name="text">
+    <string>Нерезкое маскирование</string>
    </property>
   </action>
  </widget>
