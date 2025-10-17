@@ -54,6 +54,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.exitApplicationAction.triggered.connect(self.destroy)
         self.exitApplicationAction.setShortcut('Alt+F4')
 
+        # --- Сглаживание ---
+        self.rectangleFilterAction.triggered.connect(self.doMeanFilter)
+        self.medianFilterAction.triggered.connect(self.doMedianFilter)
+        self.gaussFilterAction.triggered.connect(self.doGaussianFilter)
+        self.sigmaFilterAction.triggered.connect(self.doSigmaFilter)
+        self.absoluteDiffAction.triggered.connect(self.doAbsDiffMap)
+
+
         self.statusbar.showMessage("Готово!")
 
     def updateImageInfo(self):
@@ -262,6 +270,67 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setImagePixmap(self.mainImageLabel, imgPixmap)
         self.updateInfoImages()
         self.statusbar.showMessage("Усреднение соседних пикселей")
+
+
+    # ============================================================
+    # === 2. СГЛАЖИВАНИЕ ========================================
+    # ============================================================
+
+    def doMeanFilter(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+        self.imgMatrix = imalg.meanFilter(self.imgMatrix, k=3)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+        self.statusbar.showMessage("Прямоугольный фильтр (3x3) применён")
+
+    def doMedianFilter(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+        self.imgMatrix = imalg.medianFilter(self.imgMatrix, k=3)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+        self.statusbar.showMessage("Медианный фильтр (3x3) применён")
+
+    def doGaussianFilter(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+        sigma, ok = QInputDialog.getDouble(self, "Гауссов фильтр", "Введите σ:", 1.5, 0.1, 10.0, 1)
+        if not ok:
+            return
+        self.imgMatrix = imalg.gaussianFilter(self.imgMatrix, sigma)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+        self.statusbar.showMessage(f"Гауссов фильтр применён (σ={sigma})")
+
+    def doSigmaFilter(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+        sigma, ok = QInputDialog.getDouble(self, "Сигма-фильтр", "Введите порог σ:", 20.0, 1.0, 100.0, 1)
+        if not ok:
+            return
+        self.imgMatrix = imalg.sigmaFilter(self.imgMatrix, k=3, sigma_threshold=sigma)
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+        self.statusbar.showMessage(f"Сигма-фильтр применён (σ={sigma})")
+
+    def doAbsDiffMap(self):
+        if self.imgMatrix is None or self.imgMatrixAdjusted is None:
+            self.statusbar.showMessage("Нет изображения для сравнения")
+            return
+        diff = imalg.absoluteDifference(self.imgMatrix, self.imgMatrixAdjusted)
+        diffPixmap = imalg.pixmapFromMatrix(diff)
+        self.setImagePixmap(self.mainImageLabel, diffPixmap)
+        self.statusbar.showMessage("Показана карта абсолютной разности")
+
 
 
 if __name__ == '__main__':
