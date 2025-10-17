@@ -225,7 +225,6 @@ def applyBrightnessRangeCut(
 # === 2. СГЛАЖИВАНИЕ (реализация без math) ==================
 # ============================================================
 
-
 def _pad_reflect(channel: np.ndarray, pad: int) -> np.ndarray:
     """Зеркальное дополнение границ (без сторонних библиотек)."""
     return np.pad(channel, pad, mode='reflect')
