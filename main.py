@@ -2,7 +2,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import *
 
-from dialogs import ParameterDialog, ThresholdDialog, BrightnessRangeDialog
+from dialogs import ParameterDialog, ThresholdDialog, BrightnessRangeDialog, UnsharpMaskingDialog
 from main_ui import Ui_MainWindow
 import imagealgorithm as imalg
 
@@ -54,6 +54,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.exponentTransformAction.triggered.connect(self.doPowerTransform)
         self.binaryTransformAction.triggered.connect(self.doBinaryTransform)
         self.brightnessRangeAction.triggered.connect(self.doBrightnessRangeCut)
+        self.blurredMaskingAction.triggered.connect(self.doUnsharpMasking)
 
         self.loadImageAction.triggered.connect(self.loadImage)
         self.saveImageAction.triggered.connect(self.saveImage)
@@ -309,7 +310,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             step=0.1,
             parent=self
         )
-
         if dialog.exec() == QDialog.DialogCode.Accepted:
             gamma = dialog.getValue()
             self.imgMatrix = imalg.applyPowerTransform(self.imgMatrix, gamma)
@@ -325,7 +325,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         dialog = ThresholdDialog(self)
-
         if dialog.exec() == QDialog.DialogCode.Accepted:
             threshold = dialog.getValue()
             self.imgMatrix = imalg.applyBinaryTransform(self.imgMatrix, threshold)
@@ -341,7 +340,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         dialog = BrightnessRangeDialog(self)
-
         if dialog.exec() == QDialog.DialogCode.Accepted:
             params = dialog.getValues()
 
@@ -422,6 +420,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setImagePixmap(self.mainImageLabel, diffPixmap)
         self.statusbar.showMessage("Показана карта абсолютной разности")
 
+    # Резкость
+
+    def doUnsharpMasking(self):
+        """ Apply unsharp masking for sharpness enhancement """
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+
+        dialog = UnsharpMaskingDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            params = dialog.getValues()
+
+            # Apply unsharp masking
+            self.imgMatrix = imalg.applyUnsharpMasking(
+                self.imgMatrix,
+                params['blur_radius'],
+                params['strength']
+            )
+
+            self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+            imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+            self.setImagePixmap(self.mainImageLabel, imgPixmap)
+            self.updateInfoImages()
+
+            self.statusbar.showMessage(
+                f"Нерезкое маскирование: радиус={params['blur_radius']}, "
+                f"сила={params['strength']:.2f}"
+            )
 
 
 if __name__ == '__main__':

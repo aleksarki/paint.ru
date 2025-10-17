@@ -1,5 +1,6 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QDoubleSpinBox, QPushButton, QSpinBox, \
-    QRadioButton
+    QRadioButton, QSlider
 
 
 class ParameterDialog(QDialog):
@@ -149,3 +150,66 @@ class BrightnessRangeDialog(QDialog):
             'keep_others': self.keep_radio.isChecked()
         }
 
+
+class UnsharpMaskingDialog(QDialog):
+    """ Dialog for unsharp masking parameters """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Нерезкое маскирование")
+        self.setModal(True)
+
+        layout = QVBoxLayout(self)
+
+        # Blur radius
+        blur_layout = QHBoxLayout()
+        blur_layout.addWidget(QLabel("Радиус размытия:"))
+        self.blur_spinbox = QSpinBox()
+        self.blur_spinbox.setRange(1, 15)
+        self.blur_spinbox.setValue(5)
+        self.blur_spinbox.setSuffix(" px")
+        blur_layout.addWidget(self.blur_spinbox)
+        layout.addLayout(blur_layout)
+
+        # Info label about odd numbers
+        info_label = QLabel("(радиус будет преобразован в нечетное число)")
+        info_label.setStyleSheet("color: gray; font-kernel_size: 10px;")
+        layout.addWidget(info_label)
+
+        # Strength
+        strength_layout = QHBoxLayout()
+        strength_layout.addWidget(QLabel("Сила повышения резкости:"))
+        self.strength_slider = QSlider(Qt.Orientation.Horizontal)
+        self.strength_slider.setRange(0, 300)  # 0.0 to 3.0 with step 0.01
+        self.strength_slider.setValue(100)  # default 1.0
+        strength_layout.addWidget(self.strength_slider)
+
+        self.strength_label = QLabel("1.00")
+        self.strength_label.setFixedWidth(40)
+        strength_layout.addWidget(self.strength_label)
+        layout.addLayout(strength_layout)
+
+        # Buttons
+        button_layout = QHBoxLayout()
+        self.ok_button = QPushButton("Применить")
+        self.cancel_button = QPushButton("Отмена")
+        button_layout.addWidget(self.ok_button)
+        button_layout.addWidget(self.cancel_button)
+        layout.addLayout(button_layout)
+
+        # Connections
+        self.strength_slider.valueChanged.connect(self.update_strength_label)
+        self.ok_button.clicked.connect(self.accept)
+        self.cancel_button.clicked.connect(self.reject)
+
+        self.update_strength_label()
+
+    def update_strength_label(self):
+        strength_value = self.strength_slider.value() / 100.0
+        self.strength_label.setText(f"{strength_value:.2f}")
+
+    def getValues(self):
+        return {
+            'blur_radius': self.blur_spinbox.value(),
+            'strength': self.strength_slider.value() / 100.
+        }

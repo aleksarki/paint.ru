@@ -208,22 +208,6 @@ def applyBrightnessRangeCut(
     matrix: np.ndarray, low_threshold: int, high_threshold: int,
     constant_value: int = 0, keep_others: bool = True
 ) -> np.ndarray:
-    """
-    Cut brightness range for color image.
-
-    Args:
-        matrix: input RGB image matrix
-        low_threshold: lower brightness threshold (0-255)
-        high_threshold: upper brightness threshold (0-255)
-        constant_value: value to set for pixels outside range when keep_others=False
-        keep_others: if True - keep original values for pixels outside range
-                     if False - set constant_value for pixels outside range
-        use_intensity: if True - use pixel intensity (R+G+B)/3 for range check
-                      if False - check each channel independently
-
-    Returns:
-        processed image matrix
-    """
     result = matrix.copy()
 
     intensity = np.mean(matrix, axis=2).astype(np.uint8)
@@ -346,3 +330,49 @@ def absoluteDifference(matrix1: np.ndarray, matrix2: np.ndarray) -> np.ndarray:
     """2.4 Карта абсолютной разности."""
     diff = np.abs(matrix1.astype(np.float32) - matrix2.astype(np.float32))
     return np.clip(diff, 0, 255).astype(np.uint8)
+
+
+## Резкость
+
+def applyUnsharpMasking(matrix: np.ndarray, blur_radius: int = 5, strength: float = 1.) -> np.ndarray:
+    # blur radius is odd
+    if blur_radius % 2 == 0:
+        blur_radius += 1
+    float_matrix = matrix.astype(np.float32)
+    # blurred = gaussianFilter(matrix, strength).astype(np.float32)  # works slower
+    blurred = applyGaussianBlurSeparable(float_matrix, blur_radius)  # works faster
+    mask = float_matrix - blurred
+    sharpened = float_matrix + strength * mask
+    result = np.clip(sharpened, 0, 255).astype(np.uint8)
+    return result
+
+
+def applyGaussianBlurSeparable(matrix: np.ndarray, kernel_size: int) -> np.ndarray:
+    """ Gaussian blur using separable convolution for efficiency. """
+    sigma = max(0.3 * ((kernel_size - 1) * 0.5 - 1) + 0.8, 0.1)
+    kernel = np.zeros(kernel_size)
+    center = kernel_size // 2
+
+    # calculate Gaussian values
+    for i in range(kernel_size):
+        x = i - center
+        kernel[i] = np.exp(-(x ** 2) / (2 * sigma ** 2))
+    kernel /= np.sum(kernel)  # normalize
+    pad_size = kernel_size // 2
+
+    # vertical, pad top and bottom, convolution along rows
+    padded = np.pad(matrix, ((pad_size, pad_size), (0, 0), (0, 0)), mode='reflect')
+    result1 = np.zeros_like(matrix, dtype=np.float32)
+    for i in range(matrix.shape[0]):
+        for k in range(kernel_size):
+            result1[i] += padded[i + k] * kernel[k]
+
+    # horizontal, pad left and right, convolution along columns
+    padded = np.pad(result1, ((0, 0), (pad_size, pad_size), (0, 0)), mode='reflect')
+    result2 = np.zeros_like(result1, dtype=np.float32)
+    for j in range(result1.shape[1]):
+        for k in range(kernel_size):
+            result2[:, j] += padded[:, j + k] * kernel[k]
+
+    return result2
+
