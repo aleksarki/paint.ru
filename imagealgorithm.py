@@ -222,28 +222,41 @@ def applyBrightnessRangeCut(
 
 
 # ============================================================
-# === 2. СГЛАЖИВАНИЕ (реализация без math) ==================
+# === 2. СГЛАЖИВАНИЕ =========================================
 # ============================================================
 
 def _pad_reflect(channel: np.ndarray, pad: int) -> np.ndarray:
     """Зеркальное дополнение границ (без сторонних библиотек)."""
     return np.pad(channel, pad, mode='reflect')
+    # np.pad() — добавляет «рамку» вокруг изображения
+    # mode='reflect' — отражает края зеркально, чтобы при фильтрации не выходить за границы
 
 
 def meanFilter(matrix: np.ndarray, k: int = 3) -> np.ndarray:
     """2.1 Прямоугольный (усредняющий) фильтр."""
     if k not in (3, 5):
         raise ValueError("Размер ядра должен быть 3 или 5")
+    # Проверка на допустимый размер окна.
 
-    h, w, c = matrix.shape
-    pad = k // 2
-    result = np.zeros_like(matrix, dtype=np.float32)
+    h, w, c = matrix.shape # Извлекаем высоту (h), ширину (w) и количество каналов (c = 3 для RGB)
+    pad = k // 2 # Определяем ширину рамки для отражения. Для k=3 это 1 пиксель с каждой стороны
+    result = np.zeros_like(matrix, dtype=np.float32) 
+    # Создаём пустое изображение (result) для результата фильтрации, тип float32, чтобы избежать потерь при усреднении
 
     for ch in range(c):
         padded = _pad_reflect(matrix[:, :, ch], pad)
+        """
+        : — взять все строки (высоту)
+        : — взять все столбцы (ширину)
+        ch — конкретный номер канала (0 = R, 1 = G, 2 = B)
+        """
         for y in range(h):
             for x in range(w):
                 region = padded[y:y + k, x:x + k]
+                """
+                y:y + k — диапазон строк: от y до y + k - 1
+                x:x + k — диапазон столбцов: от x до x + k - 1
+                """
                 result[y, x, ch] = np.mean(region)
 
     return np.clip(result, 0, 255).astype(np.uint8)
@@ -269,12 +282,11 @@ def medianFilter(matrix: np.ndarray, k: int = 3) -> np.ndarray:
 
 
 def _gaussian_kernel(sigma: float) -> np.ndarray:
-    """Построение гауссова ядра по правилу 3σ (без math)."""
-    radius = int(np.ceil(3 * sigma))
-    size = 2 * radius + 1
-    y, x = np.mgrid[-radius:radius + 1, -radius:radius + 1]
-    kernel = np.exp(-(x ** 2 + y ** 2) / (2 * sigma ** 2))
-    kernel /= np.sum(kernel)
+    """Построение гауссова ядра по правилу 3σ."""
+    radius = int(np.ceil(3 * sigma)) # np.ceil (округление вверх) делает радиус целым числом
+    y, x = np.mgrid[-radius:radius + 1, -radius:radius + 1] # np.mgrid создаёт две координатные матрицы — X и Y
+    kernel = np.exp(-(x ** 2 + y ** 2) / (2 * sigma ** 2)) # Формула Гаусса
+    kernel /= np.sum(kernel) # Нормализация ядра
     return kernel
 
 
@@ -291,9 +303,15 @@ def gaussianFilter(matrix: np.ndarray, sigma: float) -> np.ndarray:
         for y in range(h):
             for x in range(w):
                 region = padded[y:y + k, x:x + k]
-                result[y, x, ch] = np.sum(region * kernel)
+                result[y, x, ch] = np.sum(region * kernel) # суммирование всех произведений
 
-    return np.clip(result, 0, 255).astype(np.uint8)
+    """
+    np.clip обрезает значения (если получились >255 или <0)
+    .astype(np.uint8) переводит обратно в формат изображения (байты 0–255)
+    """
+
+    return np.clip(result, 0, 255).astype(np.uint8) 
+    
 
 
 def sigmaFilter(matrix: np.ndarray, k: int = 3, sigma_threshold: float = 20) -> np.ndarray:
@@ -313,10 +331,14 @@ def sigmaFilter(matrix: np.ndarray, k: int = 3, sigma_threshold: float = 20) -> 
         padded = _pad_reflect(matrix[:, :, ch], pad)
         for y in range(h):
             for x in range(w):
-                center = padded[y + pad, x + pad]
-                region = padded[y:y + k, x:x + k]
-                mask = np.abs(region - center) <= sigma_threshold
-                values = region[mask]
+                center = padded[y + pad, x + pad] # Берём центр окна
+                region = padded[y:y + k, x:x + k] # Берём само окно
+                mask = np.abs(region - center) <= sigma_threshold 
+                """
+                np.abs(region - center) — модуль разницы каждого пикселя с центральным;
+                <= sigma_threshold — условие “похожести”
+                """
+                values = region[mask] # Из окна берутся только те значения, где mask == True
                 if values.size > 0:
                     result[y, x, ch] = np.mean(values)
                 else:
