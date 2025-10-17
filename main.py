@@ -2,7 +2,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import *
 
-from dialogs import ParameterDialog, ThresholdDialog
+from dialogs import ParameterDialog, ThresholdDialog, BrightnessRangeDialog
 from main_ui import Ui_MainWindow
 import imagealgorithm as imalg
 
@@ -53,6 +53,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.logatithmTransformAction.triggered.connect(self.doLogarithmicTransform)
         self.exponentTransformAction.triggered.connect(self.doPowerTransform)
         self.binaryTransformAction.triggered.connect(self.doBinaryTransform)
+        self.brightnessRangeAction.triggered.connect(self.doBrightnessRangeCut)
 
         self.loadImageAction.triggered.connect(self.loadImage)
         self.saveImageAction.triggered.connect(self.saveImage)
@@ -65,7 +66,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gaussFilterAction.triggered.connect(self.doGaussianFilter)
         self.sigmaFilterAction.triggered.connect(self.doSigmaFilter)
         self.absoluteDiffAction.triggered.connect(self.doAbsDiffMap)
-
 
         self.statusbar.showMessage("Готово!")
 
@@ -335,6 +335,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.updateInfoImages()
             self.statusbar.showMessage(f"Бинарное преобразование (порог={threshold}) применено")
 
+    def doBrightnessRangeCut(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+
+        dialog = BrightnessRangeDialog(self)
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            params = dialog.getValues()
+
+            self.imgMatrix = imalg.applyBrightnessRangeCut(
+                self.imgMatrix,
+                params['low_threshold'],
+                params['high_threshold'],
+                params['constant_value'],
+                params['keep_others']
+            )
+            self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+            imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+            self.setImagePixmap(self.mainImageLabel, imgPixmap)
+            self.updateInfoImages()
+
+            approach = "сохранены" if params['keep_others'] else f"приведены к {params['constant_value']}"
+            self.statusbar.showMessage(
+                f"Вырезан диапазон [{params['low_threshold']}-{params['high_threshold']}], "
+                f"внешние пиксели {approach}"
+            )
 
     # ============================================================
     # === 2. СГЛАЖИВАНИЕ ========================================
