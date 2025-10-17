@@ -202,3 +202,116 @@ def applyBinaryTransform(matrix: np.ndarray, threshold: int) -> np.ndarray:
     binary_matrix = np.where(gray_matrix >= threshold, 255, 0).astype(np.uint8)
     result_rgb = np.stack([binary_matrix, binary_matrix, binary_matrix], axis=2)
     return result_rgb
+
+
+# ============================================================
+# === 2. СГЛАЖИВАНИЕ (реализация без math) ==================
+# ============================================================
+
+import numpy as np
+
+
+def _pad_reflect(channel: np.ndarray, pad: int) -> np.ndarray:
+    """Зеркальное дополнение границ (без сторонних библиотек)."""
+    return np.pad(channel, pad, mode='reflect')
+
+
+def meanFilter(matrix: np.ndarray, k: int = 3) -> np.ndarray:
+    """2.1 Прямоугольный (усредняющий) фильтр."""
+    if k not in (3, 5):
+        raise ValueError("Размер ядра должен быть 3 или 5")
+
+    h, w, c = matrix.shape
+    pad = k // 2
+    result = np.zeros_like(matrix, dtype=np.float32)
+
+    for ch in range(c):
+        padded = _pad_reflect(matrix[:, :, ch], pad)
+        for y in range(h):
+            for x in range(w):
+                region = padded[y:y + k, x:x + k]
+                result[y, x, ch] = np.mean(region)
+
+    return np.clip(result, 0, 255).astype(np.uint8)
+
+
+def medianFilter(matrix: np.ndarray, k: int = 3) -> np.ndarray:
+    """2.1 Медианный фильтр."""
+    if k not in (3, 5):
+        raise ValueError("Размер ядра должен быть 3 или 5")
+
+    h, w, c = matrix.shape
+    pad = k // 2
+    result = np.zeros_like(matrix, dtype=np.float32)
+
+    for ch in range(c):
+        padded = _pad_reflect(matrix[:, :, ch], pad)
+        for y in range(h):
+            for x in range(w):
+                region = padded[y:y + k, x:x + k]
+                result[y, x, ch] = np.median(region)
+
+    return np.clip(result, 0, 255).astype(np.uint8)
+
+
+def _gaussian_kernel(sigma: float) -> np.ndarray:
+    """Построение гауссова ядра по правилу 3σ (без math)."""
+    radius = int(np.ceil(3 * sigma))
+    size = 2 * radius + 1
+    y, x = np.mgrid[-radius:radius + 1, -radius:radius + 1]
+    kernel = np.exp(-(x ** 2 + y ** 2) / (2 * sigma ** 2))
+    kernel /= np.sum(kernel)
+    return kernel
+
+
+def gaussianFilter(matrix: np.ndarray, sigma: float) -> np.ndarray:
+    """2.2 Гауссов фильтр."""
+    kernel = _gaussian_kernel(sigma)
+    k = kernel.shape[0]
+    pad = k // 2
+    h, w, c = matrix.shape
+    result = np.zeros_like(matrix, dtype=np.float32)
+
+    for ch in range(c):
+        padded = _pad_reflect(matrix[:, :, ch], pad)
+        for y in range(h):
+            for x in range(w):
+                region = padded[y:y + k, x:x + k]
+                result[y, x, ch] = np.sum(region * kernel)
+
+    return np.clip(result, 0, 255).astype(np.uint8)
+
+
+def sigmaFilter(matrix: np.ndarray, k: int = 3, sigma_threshold: float = 20) -> np.ndarray:
+    """
+    2.3 Сигма-фильтр:
+    усредняем только те пиксели в окне, которые отличаются от центрального
+    не более чем на sigma_threshold.
+    """
+    if k not in (3, 5):
+        raise ValueError("Размер ядра должен быть 3 или 5")
+
+    h, w, c = matrix.shape
+    pad = k // 2
+    result = np.zeros_like(matrix, dtype=np.float32)
+
+    for ch in range(c):
+        padded = _pad_reflect(matrix[:, :, ch], pad)
+        for y in range(h):
+            for x in range(w):
+                center = padded[y + pad, x + pad]
+                region = padded[y:y + k, x:x + k]
+                mask = np.abs(region - center) <= sigma_threshold
+                values = region[mask]
+                if values.size > 0:
+                    result[y, x, ch] = np.mean(values)
+                else:
+                    result[y, x, ch] = center
+
+    return np.clip(result, 0, 255).astype(np.uint8)
+
+
+def absoluteDifference(matrix1: np.ndarray, matrix2: np.ndarray) -> np.ndarray:
+    """2.4 Карта абсолютной разности."""
+    diff = np.abs(matrix1.astype(np.float32) - matrix2.astype(np.float32))
+    return np.clip(diff, 0, 255).astype(np.uint8)
