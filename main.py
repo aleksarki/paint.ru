@@ -64,7 +64,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.medianFilterAction.triggered.connect(self.doMedianFilter)
         self.gaussFilterAction.triggered.connect(self.doGaussianFilter)
         self.sigmaFilterAction.triggered.connect(self.doSigmaFilter)
-        self.absoluteDiffAction.triggered.connect(self.doAbsDiffMap)
+        #self.absoluteDiffAction.triggered.connect(self.doAbsDiffMap)
 
 
         self.statusbar.showMessage("Готово!")
@@ -340,24 +340,64 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # === 2. СГЛАЖИВАНИЕ ========================================
     # ============================================================
 
+    def showDifferenceDialog(self, original, filtered):
+        """Открыть окно с картой абсолютной разности между двумя изображениями."""
+        diff = imalg.absoluteDifference(original, filtered)
+        diffPixmap = imalg.pixmapFromMatrix(diff)
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Карта абсолютной разности")
+        dialog.resize(500, 500)
+
+        label = QLabel(dialog)
+        label.setPixmap(diffPixmap.scaled(
+            480, 480,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        ))
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(label)
+        dialog.setLayout(layout)
+
+        dialog.exec()
+
     def doMeanFilter(self):
         if self.imgMatrix is None:
             self.statusbar.showMessage("Нет открытого изображения")
             return
-        self.imgMatrix = imalg.meanFilter(self.imgMatrix, k=3)
+
+        original = self.imgMatrix.copy()
+        filtered = imalg.meanFilter(original, k=3)
+
+        # обновляем изображение
+        self.imgMatrix = filtered
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
         self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
         self.updateInfoImages()
+
+        # показываем карту разности
+        self.showDifferenceDialog(original, filtered)
+
         self.statusbar.showMessage("Прямоугольный фильтр (3x3) применён")
 
     def doMedianFilter(self):
         if self.imgMatrix is None:
             self.statusbar.showMessage("Нет открытого изображения")
             return
+        
+        original = self.imgMatrix.copy()
+        filtered = imalg.medianFilter(original, k=3)
+
         self.imgMatrix = imalg.medianFilter(self.imgMatrix, k=3)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
         self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
         self.updateInfoImages()
+
+        # показываем карту разности
+        self.showDifferenceDialog(original, filtered)
+
         self.statusbar.showMessage("Медианный фильтр (3x3) применён")
 
     def doGaussianFilter(self):
@@ -367,10 +407,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sigma, ok = QInputDialog.getDouble(self, "Гауссов фильтр", "Введите σ:", 1.5, 0.1, 10.0, 1)
         if not ok:
             return
+        
+        original = self.imgMatrix.copy()
+        filtered = imalg.gaussianFilter(original, sigma)
+
         self.imgMatrix = imalg.gaussianFilter(self.imgMatrix, sigma)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
         self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
         self.updateInfoImages()
+
+        # показываем карту разности
+        self.showDifferenceDialog(original, filtered)
+
         self.statusbar.showMessage(f"Гауссов фильтр применён (σ={sigma})")
 
     def doSigmaFilter(self):
@@ -380,12 +428,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sigma, ok = QInputDialog.getDouble(self, "Сигма-фильтр", "Введите порог σ:", 20.0, 1.0, 100.0, 1)
         if not ok:
             return
+        
+        original = self.imgMatrix.copy()
+        filtered = imalg.sigmaFilter(original, k=3, sigma_threshold=sigma)
+        
         self.imgMatrix = imalg.sigmaFilter(self.imgMatrix, k=3, sigma_threshold=sigma)
         self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
         self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
         self.updateInfoImages()
-        self.statusbar.showMessage(f"Сигма-фильтр применён (σ={sigma})")
 
+        # показываем карту разности
+        self.showDifferenceDialog(original, filtered)
+
+        self.statusbar.showMessage(f"Сигма-фильтр применён (σ={sigma})")
+    """ 
     def doAbsDiffMap(self):
         if self.imgMatrix is None or self.imgMatrixAdjusted is None:
             self.statusbar.showMessage("Нет изображения для сравнения")
@@ -394,6 +450,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         diffPixmap = imalg.pixmapFromMatrix(diff)
         self.setImagePixmap(self.mainImageLabel, diffPixmap)
         self.statusbar.showMessage("Показана карта абсолютной разности")
+    """
 
 
 

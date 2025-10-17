@@ -208,9 +208,6 @@ def applyBinaryTransform(matrix: np.ndarray, threshold: int) -> np.ndarray:
 # === 2. СГЛАЖИВАНИЕ (реализация без math) ==================
 # ============================================================
 
-import numpy as np
-
-
 def _pad_reflect(channel: np.ndarray, pad: int) -> np.ndarray:
     """Зеркальное дополнение границ (без сторонних библиотек)."""
     return np.pad(channel, pad, mode='reflect')
