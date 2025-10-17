@@ -1,3 +1,4 @@
+# imagealgorithm.py - добавляем новые функции
 
 import io
 import cv2
@@ -174,3 +175,30 @@ def applyNeighbourAverage(matrix: np.ndarray) -> np.ndarray:
     result[:, 0, :] = matrix[:, 0, :]
     result[:, width - 1, :] = matrix[:, width - 1, :]
     return result.astype(np.uint8)
+
+
+def applyLogarithmicTransform(matrix: np.ndarray) -> np.ndarray:
+    float_matrix = matrix.astype(np.float32)
+    # Calculate coefficient c to map to [0; 255]
+    max_vals = np.max(float_matrix, axis=(0, 1))  # for each channel
+    c = 255 / np.log(1 + max_vals)
+    transformed = c * np.log(1 + float_matrix)
+    result = np.clip(transformed, 0, 255).astype(np.uint8)
+    return result
+
+
+def applyPowerTransform(matrix: np.ndarray, gamma: float) -> np.ndarray:
+    float_matrix = matrix.astype(np.float32) / 255  # [0; 255] -> [0; 1]
+    transformed = np.power(float_matrix, gamma)
+    # Calculate coefficient c to map to [0; 255]
+    max_vals = np.max(transformed, axis=(0, 1))  # for each channel
+    c = 255 / np.maximum(max_vals, 1e-6)
+    result = (c * transformed).astype(np.uint8)  # [0; 1] -> [0; 255]
+    return result
+
+
+def applyBinaryTransform(matrix: np.ndarray, threshold: int) -> np.ndarray:
+    gray_matrix = toGrayscale(matrix)
+    binary_matrix = np.where(gray_matrix >= threshold, 255, 0).astype(np.uint8)
+    result_rgb = np.stack([binary_matrix, binary_matrix, binary_matrix], axis=2)
+    return result_rgb

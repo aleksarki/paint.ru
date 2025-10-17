@@ -2,6 +2,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import *
 
+from dialogs import ParameterDialog, ThresholdDialog
 from main_ui import Ui_MainWindow
 import imagealgorithm as imalg
 
@@ -48,6 +49,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.horisontalMirrorButton.clicked.connect(lambda: self.doMirror(0))
         self.verticalMirrorButton.clicked.connect(lambda: self.doMirror(1))
         self.neighbourAverageButton.clicked.connect(self.doNeighbourAverage)
+
+        self.logatithmTransformAction.triggered.connect(self.doLogarithmicTransform)
+        self.exponentTransformAction.triggered.connect(self.doPowerTransform)
+        self.binaryTransformAction.triggered.connect(self.doBinaryTransform)
 
         self.loadImageAction.triggered.connect(self.loadImage)
         self.saveImageAction.triggered.connect(self.saveImage)
@@ -263,9 +268,69 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.updateInfoImages()
         self.statusbar.showMessage("Усреднение соседних пикселей")
 
+    def doLogarithmicTransform(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle("Логарифмическое преобразование")
+        dialog.setText("Применить логарифмическое преобразование?")
+        dialog.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+
+        if dialog.exec() == QMessageBox.StandardButton.Yes:
+            self.imgMatrix = imalg.applyLogarithmicTransform(self.imgMatrix)
+            # self.imgMatrix = imalg.applyLogarithmicTransform(self.imgMatrixAdjusted)  # !!! dope !!!
+            self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+            imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+            self.setImagePixmap(self.mainImageLabel, imgPixmap)
+            self.updateInfoImages()
+            self.statusbar.showMessage("Логарифмическое преобразование применено")
+
+    def doPowerTransform(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+
+        dialog = ParameterDialog(
+            "Степенное преобразование",
+            "Значение гаммы:",
+            default_value=1.0,
+            min_val=0.1,
+            max_val=5.0,
+            step=0.1,
+            parent=self
+        )
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            gamma = dialog.getValue()
+            self.imgMatrix = imalg.applyPowerTransform(self.imgMatrix, gamma)
+            self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+            imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+            self.setImagePixmap(self.mainImageLabel, imgPixmap)
+            self.updateInfoImages()
+            self.statusbar.showMessage(f"Степенное преобразование (γ={gamma:.2f}) применено")
+
+    def doBinaryTransform(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+
+        dialog = ThresholdDialog(self)
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            threshold = dialog.getValue()
+            self.imgMatrix = imalg.applyBinaryTransform(self.imgMatrix, threshold)
+            self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+            imgPixmap = imalg.pixmapFromMatrix(self.imgMatrixAdjusted)
+            self.setImagePixmap(self.mainImageLabel, imgPixmap)
+            self.updateInfoImages()
+            self.statusbar.showMessage(f"Бинарное преобразование (порог={threshold}) применено")
+
 
 if __name__ == '__main__':
     import sys
+
     app = QApplication(sys.argv)
     wnd = MainWindow()
     wnd.show()
