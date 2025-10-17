@@ -204,6 +204,39 @@ def applyBinaryTransform(matrix: np.ndarray, threshold: int) -> np.ndarray:
     return result_rgb
 
 
+def applyBrightnessRangeCut(
+    matrix: np.ndarray, low_threshold: int, high_threshold: int,
+    constant_value: int = 0, keep_others: bool = True
+) -> np.ndarray:
+    """
+    Cut brightness range for color image.
+
+    Args:
+        matrix: input RGB image matrix
+        low_threshold: lower brightness threshold (0-255)
+        high_threshold: upper brightness threshold (0-255)
+        constant_value: value to set for pixels outside range when keep_others=False
+        keep_others: if True - keep original values for pixels outside range
+                     if False - set constant_value for pixels outside range
+        use_intensity: if True - use pixel intensity (R+G+B)/3 for range check
+                      if False - check each channel independently
+
+    Returns:
+        processed image matrix
+    """
+    result = matrix.copy()
+
+    intensity = np.mean(matrix, axis=2).astype(np.uint8)
+    range_mask = (intensity >= low_threshold) & (intensity <= high_threshold)
+
+    result[range_mask] = 0
+
+    if not keep_others:
+        result[~range_mask] = constant_value
+
+    return result.astype(np.uint8)
+
+
 # ============================================================
 # === 2. СГЛАЖИВАНИЕ (реализация без math) ==================
 # ============================================================
