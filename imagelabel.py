@@ -28,7 +28,7 @@ class ImageLabel(QLabel):
             img_x, img_y = self.getImageCoordinates(event.pos())  # mouse coords to image coords
             if img_x is not None and img_y is not None:
                 r, g, b = self.imageMatrix[img_y, img_x]
-                intensity = (r + g + b) / 3.0
+                intensity = (float(r) + float(g) + float(b)) / 3.0
                 window_avg, window_std = self.calculateWindowStatistics(img_x, img_y)
                 self.mouseMoved.emit(img_x, img_y, r, g, b, intensity, window_avg, window_std)  # send signal
 

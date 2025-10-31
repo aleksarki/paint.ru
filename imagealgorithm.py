@@ -486,3 +486,66 @@ def cornerDetectionHessian(matrix: np.ndarray, threshold: float = 1e6) -> np.nda
 
     return result.astype(np.uint8)
 
+def cornerDetectionHarris(matrix: np.ndarray, k: float = 0.05, threshold: float = 1e6) -> np.ndarray:
+    """
+    Детектор углов Харриса.
+    k — эмпирический коэффициент чувствительности (0.04–0.06).
+    threshold — порог для отклика R.
+    """
+    gray = np.mean(matrix, axis=2).astype(np.float32)
+    h, w = gray.shape
+
+    Gx_kernel = np.array([[-1, 0, 1],
+                          [-2, 0, 2],
+                          [-1, 0, 1]], dtype=np.float32)
+    Gy_kernel = np.array([[-1, -2, -1],
+                          [ 0,  0,  0],
+                          [ 1,  2,  1]], dtype=np.float32)
+
+    pad = 1
+    padded = np.pad(gray, pad, mode='reflect')
+
+    Ix = np.zeros_like(gray)
+    Iy = np.zeros_like(gray)
+
+    for y in range(h):
+        for x in range(w):
+            region = padded[y:y+3, x:x+3]
+            Ix[y, x] = np.sum(region * Gx_kernel)
+            Iy[y, x] = np.sum(region * Gy_kernel)
+
+    # --- Элементы матрицы M ---
+    Ixx = Ix * Ix
+    Iyy = Iy * Iy
+    Ixy = Ix * Iy
+
+    # --- Сглаживание элементов (окно 3x3) ---
+    pad = 1
+    padded_Ixx = np.pad(Ixx, pad, mode='reflect')
+    padded_Iyy = np.pad(Iyy, pad, mode='reflect')
+    padded_Ixy = np.pad(Ixy, pad, mode='reflect')
+
+    Mxx = np.zeros_like(gray)
+    Myy = np.zeros_like(gray)
+    Mxy = np.zeros_like(gray)
+
+    for y in range(h):
+        for x in range(w):
+            Mxx[y, x] = np.mean(padded_Ixx[y:y+3, x:x+3])
+            Myy[y, x] = np.mean(padded_Iyy[y:y+3, x:x+3])
+            Mxy[y, x] = np.mean(padded_Ixy[y:y+3, x:x+3])
+
+    # --- Вычисляем отклик Харриса ---
+    detM = Mxx * Myy - Mxy**2
+    traceM = Mxx + Myy
+    R = detM - k * (traceM**2)
+
+    # --- Карта углов ---
+    corner_map = np.zeros_like(gray)
+    corner_map[R > threshold] = 255
+
+    # --- Визуализация ---
+    result = matrix.copy()
+    result[corner_map > 0] = [255, 0, 0]  # красные углы
+
+    return result.astype(np.uint8)

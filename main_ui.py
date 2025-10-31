@@ -344,6 +344,8 @@ class Ui_MainWindow(object):
         self.highGaussianAction.setObjectName("highGaussianAction")
         self.cornerDetectionAction = QtGui.QAction(parent=MainWindow)
         self.cornerDetectionAction.setObjectName("cornerDetectionAction")
+        self.cornerHarrisAction = QtGui.QAction(parent=MainWindow)
+        self.cornerHarrisAction.setObjectName("cornerHarrisAction")
         self.blurredMaskingAction = QtGui.QAction(parent=MainWindow)
         self.blurredMaskingAction.setObjectName("blurredMaskingAction")
         self.fileMenu.addAction(self.loadImageAction)
@@ -364,6 +366,7 @@ class Ui_MainWindow(object):
         self.highpassMenu.addAction(self.highGaussianAction)
         self.highpassMenu.addSeparator()
         self.highpassMenu.addAction(self.cornerDetectionAction)
+        self.highpassMenu.addAction(self.cornerHarrisAction)
 
         self.menubar.addAction(self.fileMenu.menuAction())
         self.menubar.addAction(self.chromaMenu.menuAction())
@@ -450,6 +453,8 @@ class Ui_MainWindow(object):
         self.highpassMenu.setTitle(_translate("MainWindow", "Высокие частоты"))
         self.highMeanAction.setText(_translate("MainWindow", "High-pass (усреднение)"))
         self.highGaussianAction.setText(_translate("MainWindow", "High-pass (Гаусс)"))
-        self.cornerDetectionAction.setText(_translate("MainWindow", "Выделение углов"))
+        self.cornerDetectionAction.setText(_translate("MainWindow", "Выделение углов (Гессе)"))
+        self.cornerHarrisAction.setText(_translate("MainWindow", "Выделение углов (Харрис)"))
+
 
 from imagelabel import ImageLabel

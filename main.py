@@ -73,6 +73,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.highMeanAction.triggered.connect(self.doHighPassMean)
         self.highGaussianAction.triggered.connect(self.doHighPassGaussian)
         self.cornerDetectionAction.triggered.connect(self.doCornerDetection)
+        self.cornerHarrisAction.triggered.connect(self.doCornerHarris)
+
 
 
         self.statusbar.showMessage("Готово!")
@@ -576,6 +578,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.updateInfoImages()
 
         self.statusbar.showMessage(f"Выделение углов (порог={threshold})")
+
+    def doCornerHarris(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет изображения для обработки")
+            return
+
+        k, ok1 = QInputDialog.getDouble(self, "Выделение углов (Харрис)", "Введите параметр k (0.04–0.06):", 0.05, 0.01, 0.2, 2)
+        if not ok1:
+            return
+
+        threshold, ok2 = QInputDialog.getDouble(self, "Выделение углов (Харрис)", "Введите порог:", 1e6, 1e4, 1e8, 0)
+        if not ok2:
+            return
+
+        original = self.imgMatrix.copy()
+        filtered = imalg.cornerDetectionHarris(original, k=k, threshold=threshold)
+
+        self.imgMatrix = filtered
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+
+        self.statusbar.showMessage(f"Выделение углов (Харрис), k={k}, threshold={threshold}")
+
 
 
 
