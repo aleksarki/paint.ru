@@ -397,3 +397,92 @@ def applyGaussianBlurSeparable(matrix: np.ndarray, kernel_size: int) -> np.ndarr
 
     return result2
 
+def highPassFilter(matrix: np.ndarray, method: str = "mean", c: float = 1.0, sigma: float = 1.0, k: int = 3) -> np.ndarray:
+    """
+    Примитивный высокочастотный фильтр:
+    ВЧ = ИСХ - РАЗМ * c
+    method: "mean" или "gaussian"
+    """
+    if method == "mean":
+        blur = meanFilter(matrix, k)
+    elif method == "gaussian":
+        blur = gaussianFilter(matrix, sigma)
+    else:
+        raise ValueError("method должен быть 'mean' или 'gaussian'")
+
+    high = matrix.astype(np.float32) - blur.astype(np.float32) * c
+
+    # решаем проблему отрицательных значений
+    min_val = high.min()
+    if min_val < 0:
+        high -= min_val
+    high = np.clip(high, 0, 255)
+
+    return high.astype(np.uint8)
+
+
+def cornerDetectionHessian(matrix: np.ndarray, threshold: float = 1e6) -> np.ndarray:
+    """
+    Нахождение углов с помощью матрицы Гессе (вторые производные).
+    """
+    gray = np.mean(matrix, axis=2).astype(np.float32)
+    h, w = gray.shape
+
+    # --- Первые производные (операторы Собеля) ---
+    Gx_kernel = np.array([[-1, 0, 1],
+                          [-2, 0, 2],
+                          [-1, 0, 1]], dtype=np.float32)
+    Gy_kernel = np.array([[-1, -2, -1],
+                          [ 0,  0,  0],
+                          [ 1,  2,  1]], dtype=np.float32)
+
+    pad = 1
+    padded = np.pad(gray, pad, mode='reflect')
+
+    Ix = np.zeros_like(gray)
+    Iy = np.zeros_like(gray)
+
+    for y in range(h):
+        for x in range(w):
+            region = padded[y:y+3, x:x+3]
+            Ix[y, x] = np.sum(region * Gx_kernel)
+            Iy[y, x] = np.sum(region * Gy_kernel)
+
+    # --- Вторые производные ---
+    Ixx = np.zeros_like(gray)
+    Iyy = np.zeros_like(gray)
+    Ixy = np.zeros_like(gray)
+
+    pad = 1
+    padded_Ix = np.pad(Ix, pad, mode='reflect')
+    padded_Iy = np.pad(Iy, pad, mode='reflect')
+
+    # ядро [-1, 0, 1] для приближённой второй производной
+    second_kernel = np.array([[-1, 0, 1]], dtype=np.float32)
+
+    for y in range(h):
+        for x in range(w):
+            # d/dx (Ix) → Ixx
+            region_x = padded_Ix[y:y+3, x:x+3]
+            Ixx[y, x] = np.sum(region_x * Gx_kernel)
+
+            # d/dy (Iy) → Iyy
+            region_y = padded_Iy[y:y+3, x:x+3]
+            Iyy[y, x] = np.sum(region_y * Gy_kernel)
+
+            # смешанная производная d²I/dxdy
+            Ixy[y, x] = np.sum(region_x * Gy_kernel)
+
+    # --- Детерминант Гессе ---
+    detH = Ixx * Iyy - Ixy**2
+
+    # --- Пороговая фильтрация ---
+    corner_map = np.zeros_like(gray)
+    corner_map[detH > threshold] = 255
+
+    # --- Визуализация ---
+    result = matrix.copy()
+    result[corner_map > 0] = [255, 0, 0]  # красные точки — углы
+
+    return result.astype(np.uint8)
+

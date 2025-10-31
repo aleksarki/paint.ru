@@ -308,6 +308,8 @@ class Ui_MainWindow(object):
         self.somoothMenu.setObjectName("somoothMenu")
         self.sharpnessMenu = QtWidgets.QMenu(parent=self.menubar)
         self.sharpnessMenu.setObjectName("sharpnessMenu")
+        self.highpassMenu = QtWidgets.QMenu(parent=self.menubar)
+        self.highpassMenu.setObjectName("highpassMenu")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -336,6 +338,12 @@ class Ui_MainWindow(object):
         self.sigmaFilterAction.setObjectName("sigmaFilterAction")
         #self.absoluteDiffAction = QtGui.QAction(parent=MainWindow)
         #self.absoluteDiffAction.setObjectName("absoluteDiffAction")
+        self.highMeanAction = QtGui.QAction(parent=MainWindow)
+        self.highMeanAction.setObjectName("highMeanAction")
+        self.highGaussianAction = QtGui.QAction(parent=MainWindow)
+        self.highGaussianAction.setObjectName("highGaussianAction")
+        self.cornerDetectionAction = QtGui.QAction(parent=MainWindow)
+        self.cornerDetectionAction.setObjectName("cornerDetectionAction")
         self.blurredMaskingAction = QtGui.QAction(parent=MainWindow)
         self.blurredMaskingAction.setObjectName("blurredMaskingAction")
         self.fileMenu.addAction(self.loadImageAction)
@@ -352,10 +360,17 @@ class Ui_MainWindow(object):
         self.somoothMenu.addAction(self.sigmaFilterAction)
         #self.somoothMenu.addAction(self.absoluteDiffAction)
         self.sharpnessMenu.addAction(self.blurredMaskingAction)
+        self.highpassMenu.addAction(self.highMeanAction)
+        self.highpassMenu.addAction(self.highGaussianAction)
+        self.highpassMenu.addSeparator()
+        self.highpassMenu.addAction(self.cornerDetectionAction)
+
         self.menubar.addAction(self.fileMenu.menuAction())
         self.menubar.addAction(self.chromaMenu.menuAction())
         self.menubar.addAction(self.somoothMenu.menuAction())
         self.menubar.addAction(self.sharpnessMenu.menuAction())
+        self.menubar.addAction(self.highpassMenu.menuAction())
+
 
         self.retranslateUi(MainWindow)
         self.brightnessSlider.sliderMoved['int'].connect(self.label_23.setNum) # type: ignore
@@ -432,4 +447,9 @@ class Ui_MainWindow(object):
         self.sigmaFilterAction.setText(_translate("MainWindow", "Сигма-фильтр"))
         #self.absoluteDiffAction.setText(_translate("MainWindow", "Карта абсолютной разности"))
         self.blurredMaskingAction.setText(_translate("MainWindow", "Нерезкое маскирование"))
+        self.highpassMenu.setTitle(_translate("MainWindow", "Высокие частоты"))
+        self.highMeanAction.setText(_translate("MainWindow", "High-pass (усреднение)"))
+        self.highGaussianAction.setText(_translate("MainWindow", "High-pass (Гаусс)"))
+        self.cornerDetectionAction.setText(_translate("MainWindow", "Выделение углов"))
+
 from imagelabel import ImageLabel

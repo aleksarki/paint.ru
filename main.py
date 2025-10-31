@@ -55,6 +55,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.binaryTransformAction.triggered.connect(self.doBinaryTransform)
         self.brightnessRangeAction.triggered.connect(self.doBrightnessRangeCut)
         self.blurredMaskingAction.triggered.connect(self.doUnsharpMasking)
+        
 
         self.loadImageAction.triggered.connect(self.loadImage)
         self.saveImageAction.triggered.connect(self.saveImage)
@@ -67,6 +68,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gaussFilterAction.triggered.connect(self.doGaussianFilter)
         self.sigmaFilterAction.triggered.connect(self.doSigmaFilter)
         #self.absoluteDiffAction.triggered.connect(self.doAbsDiffMap)
+
+        # --- Высокие частоты ---
+        self.highMeanAction.triggered.connect(self.doHighPassMean)
+        self.highGaussianAction.triggered.connect(self.doHighPassGaussian)
+        self.cornerDetectionAction.triggered.connect(self.doCornerDetection)
+
 
         self.statusbar.showMessage("Готово!")
 
@@ -505,6 +512,71 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f"Нерезкое маскирование: радиус={params['blur_radius']}, "
                 f"сила={params['strength']:.2f}"
             )
+
+    # ============================================================
+    # === 3. ВЫСОКОЧАСТОТНАЯ ОБРАБОТКА ==========================
+    # ============================================================
+
+    def doHighPassMean(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет изображения для обработки")
+            return
+
+        c, ok = QInputDialog.getDouble(self, "High-pass (усреднение)", "Введите коэффициент c:", 1.0, 0.0, 3.0, 1)
+        if not ok:
+            return
+
+        original = self.imgMatrix.copy()
+        filtered = imalg.highPassFilter(original, method="mean", c=c, k=3)
+
+        self.imgMatrix = filtered
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+
+        self.statusbar.showMessage(f"High-pass (усреднение), c={c}")
+
+    def doHighPassGaussian(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет изображения для обработки")
+            return
+
+        sigma, ok1 = QInputDialog.getDouble(self, "High-pass (Гаусс)", "Введите σ:", 1.0, 0.1, 10.0, 1)
+        if not ok1:
+            return
+        c, ok2 = QInputDialog.getDouble(self, "High-pass (Гаусс)", "Введите коэффициент c:", 1.0, 0.0, 3.0, 1)
+        if not ok2:
+            return
+
+        original = self.imgMatrix.copy()
+        filtered = imalg.highPassFilter(original, method="gaussian", sigma=sigma, c=c)
+
+        self.imgMatrix = filtered
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+
+        self.statusbar.showMessage(f"High-pass (Гаусс), σ={sigma}, c={c}")
+
+    def doCornerDetection(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет изображения для обработки")
+            return
+
+        threshold, ok = QInputDialog.getDouble(self, "Выделение углов", "Введите порог:", 10000.0, 1000.0, 100000.0, 0)
+        if not ok:
+            return
+
+        original = self.imgMatrix.copy()
+        filtered = imalg.cornerDetectionHessian(original, threshold=threshold)
+
+        self.imgMatrix = filtered
+        self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+
+        self.statusbar.showMessage(f"Выделение углов (порог={threshold})")
+
 
 
 if __name__ == '__main__':
