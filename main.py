@@ -2,7 +2,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import *
 
-from dialogs import ParameterDialog, ThresholdDialog, BrightnessRangeDialog, UnsharpMaskingDialog
+from dialogs import ParameterDialog, ThresholdDialog, BrightnessRangeDialog, UnsharpMaskingDialog, ConvolutionDialog
 from main_ui import Ui_MainWindow
 import imagealgorithm as imalg
 
@@ -66,7 +66,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.medianFilterAction.triggered.connect(self.doMedianFilter)
         self.gaussFilterAction.triggered.connect(self.doGaussianFilter)
         self.sigmaFilterAction.triggered.connect(self.doSigmaFilter)
+        self.customFilterAction.triggered.connect(self.doConvolution)
         #self.absoluteDiffAction.triggered.connect(self.doAbsDiffMap)
+
+        self.sobelEdgesAction.triggered.connect(self.doSobelEdgeDetection)
 
         self.statusbar.showMessage("Готово!")
 
@@ -505,6 +508,54 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f"Нерезкое маскирование: радиус={params['blur_radius']}, "
                 f"сила={params['strength']:.2f}"
             )
+
+    def doConvolution(self):
+        """Применить произвольную свёртку"""
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+
+        dialog = ConvolutionDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            kernel = dialog.get_matrix()
+            options = dialog.get_options()
+
+            # Применить свёртку
+            filtered = imalg.applyConvolution(
+                self.imgMatrix,
+                kernel,
+                options['normalize'],
+                options['add_128'],
+                options['abs_value']
+            )
+
+            # Обновить изображение
+            original = self.imgMatrix.copy()
+            self.imgMatrix = filtered
+            self.imgMatrixAdjusted = self.matrixAdjustmentSequence(self.imgMatrix)
+            self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+            self.updateInfoImages()
+
+            # Показать карту разности
+            # self.showDifferenceDialog(original, filtered)
+
+            self.statusbar.showMessage("Свёртка применена")
+
+    def doSobelEdgeDetection(self):
+        """Выделение границ оператором Собеля"""
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+
+        # Применить оператор Собеля
+        edges = imalg.applySobelEdgeDetection(self.imgMatrix)
+
+        # Показать результат
+        self.imgMatrixAdjusted = edges
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+
+        self.statusbar.showMessage("Границы выделены оператором Собеля")
 
 
 if __name__ == '__main__':

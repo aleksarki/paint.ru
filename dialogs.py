@@ -1,6 +1,7 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QDoubleSpinBox, QPushButton, QSpinBox, \
-    QRadioButton, QSlider
+    QRadioButton, QSlider, QComboBox, QGroupBox, QScrollArea, QWidget, QGridLayout, QCheckBox
+import numpy as np
 
 
 class ParameterDialog(QDialog):
@@ -212,4 +213,204 @@ class UnsharpMaskingDialog(QDialog):
         return {
             'blur_radius': self.blur_spinbox.value(),
             'strength': self.strength_slider.value() / 100.
+        }
+
+
+class ConvolutionDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Свёртка с произвольной матрицей")
+        self.setModal(True)
+        self.setMinimumWidth(500)
+
+        layout = QVBoxLayout(self)
+
+        # Размер матрицы
+        size_layout = QHBoxLayout()
+        size_layout.addWidget(QLabel("Размер матрицы (n×n):"))
+        self.size_spinbox = QSpinBox()
+        self.size_spinbox.setRange(1, 15)
+        self.size_spinbox.setValue(3)
+        self.size_spinbox.valueChanged.connect(self.update_matrix_inputs)
+        size_layout.addWidget(self.size_spinbox)
+        size_layout.addStretch()
+        layout.addLayout(size_layout)
+
+        # Стандартные матрицы
+        preset_layout = QHBoxLayout()
+        preset_layout.addWidget(QLabel("Стандартные матрицы:"))
+        self.preset_combo = QComboBox()
+        self.preset_combo.addItems([
+            "Пользовательская",
+            "Размытие 3×3",
+            "Размытие 5×5",
+            "Резкость 3×3",
+            "Резкость 5×5",
+            "Горизонтальный Собель",
+            "Вертикальный Собель",
+            "Лапласиан 3×3",
+            "Лапласиан 5×5"
+        ])
+        self.preset_combo.currentTextChanged.connect(self.load_preset)
+        preset_layout.addWidget(self.preset_combo)
+        layout.addLayout(preset_layout)
+
+        # Область для ввода матрицы
+        matrix_group = QGroupBox("Матрица свёртки")
+        matrix_layout = QVBoxLayout(matrix_group)
+
+        self.scroll_area = QScrollArea()
+        self.scroll_widget = QWidget()
+        self.matrix_layout = QGridLayout(self.scroll_widget)
+        self.scroll_area.setWidget(self.scroll_widget)
+        self.scroll_area.setWidgetResizable(True)
+        matrix_layout.addWidget(self.scroll_area)
+
+        layout.addWidget(matrix_group)
+
+        # Опции
+        options_layout = QVBoxLayout()
+
+        self.normalize_check = QCheckBox("Нормализация (деление на сумму элементов)")
+        self.normalize_check.setChecked(True)
+        options_layout.addWidget(self.normalize_check)
+
+        self.add128_check = QCheckBox("Прибавить 128 (для визуализации границ)")
+        options_layout.addWidget(self.add128_check)
+
+        self.abs_check = QCheckBox("Взять модуль результата")
+        options_layout.addWidget(self.abs_check)
+
+        layout.addLayout(options_layout)
+
+        # Кнопки
+        button_layout = QHBoxLayout()
+        self.ok_button = QPushButton("Применить")
+        self.cancel_button = QPushButton("Отмена")
+        button_layout.addWidget(self.ok_button)
+        button_layout.addWidget(self.cancel_button)
+        layout.addLayout(button_layout)
+
+        # Соединения
+        self.ok_button.clicked.connect(self.accept)
+        self.cancel_button.clicked.connect(self.reject)
+
+        # Инициализация матрицы
+        self.matrix_inputs = []
+        self.update_matrix_inputs()
+
+    def update_matrix_inputs(self):
+        """Обновить поля ввода матрицы при изменении размера"""
+        # Очистить старые поля
+        for i in reversed(range(self.matrix_layout.count())):
+            self.matrix_layout.itemAt(i).widget().setParent(None)
+        self.matrix_inputs.clear()
+
+        size = self.size_spinbox.value()
+
+        # Создать новые поля ввода
+        for i in range(size):
+            row_inputs = []
+            for j in range(size):
+                spinbox = QDoubleSpinBox()
+                spinbox.setRange(-100, 100)
+                spinbox.setValue(0.0)
+                spinbox.setDecimals(3)
+                spinbox.setSingleStep(0.1)
+                spinbox.setFixedWidth(70)
+                self.matrix_layout.addWidget(spinbox, i, j)
+                row_inputs.append(spinbox)
+            self.matrix_inputs.append(row_inputs)
+
+    def load_preset(self, preset_name):
+        """Загрузить стандартную матрицу"""
+        if preset_name == "Пользовательская":
+            return
+
+        size = self.size_spinbox.value()
+        matrix = self.get_preset_matrix(preset_name, size)
+
+        if matrix is not None:
+            for i in range(size):
+                for j in range(size):
+                    if i < len(matrix) and j < len(matrix[0]):
+                        self.matrix_inputs[i][j].setValue(matrix[i][j])
+                    else:
+                        self.matrix_inputs[i][j].setValue(0.0)
+
+    def get_preset_matrix(self, preset_name, size):
+        """Получить стандартную матрицу"""
+        if preset_name == "Размытие 3×3":
+            return [
+                [1 / 9, 1 / 9, 1 / 9],
+                [1 / 9, 1 / 9, 1 / 9],
+                [1 / 9, 1 / 9, 1 / 9]
+            ]
+        elif preset_name == "Размытие 5×5":
+            return [
+                [1 / 25, 1 / 25, 1 / 25, 1 / 25, 1 / 25],
+                [1 / 25, 1 / 25, 1 / 25, 1 / 25, 1 / 25],
+                [1 / 25, 1 / 25, 1 / 25, 1 / 25, 1 / 25],
+                [1 / 25, 1 / 25, 1 / 25, 1 / 25, 1 / 25],
+                [1 / 25, 1 / 25, 1 / 25, 1 / 25, 1 / 25]
+            ]
+        elif preset_name == "Резкость 3×3":
+            return [
+                [0, -1, 0],
+                [-1, 5, -1],
+                [0, -1, 0]
+            ]
+        elif preset_name == "Резкость 5×5":
+            return [
+                [-1, -1, -1, -1, -1],
+                [-1, -1, -1, -1, -1],
+                [-1, -1, 25, -1, -1],
+                [-1, -1, -1, -1, -1],
+                [-1, -1, -1, -1, -1]
+            ]
+        elif preset_name == "Горизонтальный Собель":
+            return [
+                [-1, 0, 1],
+                [-2, 0, 2],
+                [-1, 0, 1]
+            ]
+        elif preset_name == "Вертикальный Собель":
+            return [
+                [-1, -2, -1],
+                [0, 0, 0],
+                [1, 2, 1]
+            ]
+        elif preset_name == "Лапласиан 3×3":
+            return [
+                [0, -1, 0],
+                [-1, 4, -1],
+                [0, -1, 0]
+            ]
+        elif preset_name == "Лапласиан 5×5":
+            return [
+                [-1, -1, -1, -1, -1],
+                [-1, -1, -1, -1, -1],
+                [-1, -1, 24, -1, -1],
+                [-1, -1, -1, -1, -1],
+                [-1, -1, -1, -1, -1]
+            ]
+        return None
+
+    def get_matrix(self):
+        """Получить матрицу из полей ввода"""
+        size = self.size_spinbox.value()
+        matrix = []
+        for i in range(size):
+            row = []
+            for j in range(size):
+                row.append(self.matrix_inputs[i][j].value())
+            matrix.append(row)
+        return np.array(matrix)
+
+    def get_options(self):
+        """Получить выбранные опции"""
+        return {
+            'normalize': self.normalize_check.isChecked(),
+            'add_128': self.add128_check.isChecked(),
+            'abs_value': self.abs_check.isChecked()
         }

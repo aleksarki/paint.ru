@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1021</width>
-    <height>755</height>
+    <height>759</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -699,17 +699,27 @@
     <addaction name="gaussFilterAction"/>
     <addaction name="sigmaFilterAction"/>
     <addaction name="absoluteDiffAction"/>
+    <addaction name="customFilterAction"/>
    </widget>
    <widget class="QMenu" name="sharpnessMenu">
     <property name="title">
      <string>Резкость</string>
     </property>
     <addaction name="blurredMaskingAction"/>
+    <addaction name="highPassFilterAction"/>
+   </widget>
+   <widget class="QMenu" name="extractMenu">
+    <property name="title">
+     <string>Выделение</string>
+    </property>
+    <addaction name="extractAnglesAction"/>
+    <addaction name="sobelEdgesAction"/>
    </widget>
    <addaction name="fileMenu"/>
    <addaction name="chromaMenu"/>
    <addaction name="somoothMenu"/>
    <addaction name="sharpnessMenu"/>
+   <addaction name="extractMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="loadImageAction">
@@ -790,6 +800,26 @@
   <action name="blurredMaskingAction">
    <property name="text">
     <string>Нерезкое маскирование</string>
+   </property>
+  </action>
+  <action name="highPassFilterAction">
+   <property name="text">
+    <string>High-pass фильтр</string>
+   </property>
+  </action>
+  <action name="extractAnglesAction">
+   <property name="text">
+    <string>Выделение углов</string>
+   </property>
+  </action>
+  <action name="sobelEdgesAction">
+   <property name="text">
+    <string>Выделение границ (Собель)</string>
+   </property>
+  </action>
+  <action name="customFilterAction">
+   <property name="text">
+    <string>Произвольный фильтр</string>
    </property>
   </action>
  </widget>

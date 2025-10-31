@@ -1,5 +1,3 @@
-# imagealgorithm.py - добавляем новые функции
-
 import io
 import cv2
 import matplotlib.pyplot as plt
@@ -375,3 +373,79 @@ def applyGaussianBlurSeparable(matrix: np.ndarray, kernel_size: int) -> np.ndarr
 
     return result2
 
+
+# new functions (3)
+def applyConvolution(
+    matrix: np.ndarray, kernel: np.ndarray, normalize: bool = True, add_128: bool = False, abs_value: bool = False
+) -> np.ndarray:
+    if len(matrix.shape) == 2:  # grayscale
+        return _convolution_single_channel(matrix, kernel, normalize, add_128, abs_value)
+    elif len(matrix.shape) == 3:  # RGB
+        result = np.zeros_like(matrix, dtype=np.float32)
+        for channel in range(matrix.shape[2]):
+            result[:, :, channel] = _convolution_single_channel(
+                matrix[:, :, channel], kernel, normalize, add_128, abs_value
+            )
+        return np.clip(result, 0, 255).astype(np.uint8)
+    else:
+        raise ValueError("Неверная размерность матрицы")
+
+
+def _convolution_single_channel(
+    channel: np.ndarray, kernel: np.ndarray, normalize: bool, add_128: bool, abs_value: bool
+) -> np.ndarray:
+    """Свёртка для одного канала"""
+    k_height, k_width = kernel.shape
+    pad_h, pad_w = k_height // 2, k_width // 2
+
+    # Дополнение границ
+    padded = np.pad(channel.astype(np.float32), ((pad_h, pad_h), (pad_w, pad_w)), mode='reflect')
+
+    # Вычисление суммы ядра для нормализации
+    kernel_sum = np.sum(kernel)
+    if normalize and abs(kernel_sum) > 1e-6:
+        normalized_kernel = kernel / kernel_sum
+    else:
+        normalized_kernel = kernel
+
+    # Применение свёртки
+    result = np.zeros_like(channel, dtype=np.float32)
+    for i in range(channel.shape[0]):
+        for j in range(channel.shape[1]):
+            region = padded[i:i + k_height, j:j + k_width]
+            conv_value = np.sum(region * normalized_kernel)
+
+            if abs_value:
+                conv_value = np.abs(conv_value)
+            if add_128:
+                conv_value += 128
+
+            result[i, j] = conv_value
+
+    return np.clip(result, 0, 255)
+
+
+def applySobelEdgeDetection(matrix: np.ndarray) -> np.ndarray:
+    """ Оператор Собеля. """
+    if len(matrix.shape) == 3:
+        gray_matrix = toGrayscale(matrix)
+    else:
+        gray_matrix = matrix
+
+    # Ядра Собеля
+    sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
+    sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
+
+    # Применение свёрток
+    grad_x = _convolution_single_channel(gray_matrix, sobel_x, False, False, False)
+    grad_y = _convolution_single_channel(gray_matrix, sobel_y, False, False, False)
+
+    gradient_magnitude = np.sqrt(grad_x ** 2 + grad_y ** 2)  # Вычисление градиента
+    gradient_magnitude = np.clip(gradient_magnitude, 0, 255)  # Нормализация к диапазону [0, 255]
+
+    if len(matrix.shape) == 3:
+        result = np.stack([gradient_magnitude] * 3, axis=2).astype(np.uint8)  # Преобразование в RGB для отображения
+    else:
+        result = gradient_magnitude.astype(np.uint8)
+
+    return result
