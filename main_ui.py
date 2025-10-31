@@ -352,6 +352,8 @@ class Ui_MainWindow(object):
         self.highGaussianAction.setObjectName("highGaussianAction")
         self.cornerHarrisAction = QtGui.QAction(parent=MainWindow)
         self.cornerHarrisAction.setObjectName("cornerHarrisAction")
+        self.dogEdgesAction = QtGui.QAction(parent=MainWindow)
+        self.dogEdgesAction.setObjectName("dogEdgesAction")
         self.fileMenu.addAction(self.loadImageAction)
         self.fileMenu.addAction(self.saveImageAction)
         self.fileMenu.addSeparator()
@@ -371,6 +373,7 @@ class Ui_MainWindow(object):
         self.extractMenu.addAction(self.cornerDetectionAction)
         self.extractMenu.addAction(self.cornerHarrisAction)
         self.extractMenu.addAction(self.sobelEdgesAction)
+        self.extractMenu.addAction(self.dogEdgesAction)
         self.menubar.addAction(self.fileMenu.menuAction())
         self.menubar.addAction(self.chromaMenu.menuAction())
         self.menubar.addAction(self.somoothMenu.menuAction())
@@ -459,4 +462,5 @@ class Ui_MainWindow(object):
         self.customFilterAction.setText(_translate("MainWindow", "Произвольный фильтр"))
         self.highGaussianAction.setText(_translate("MainWindow", "High-pass (Гаусс)"))
         self.cornerHarrisAction.setText(_translate("MainWindow", "Выделение углов (Харрис)"))
+        self.dogEdgesAction.setText(_translate("MainWindow", "Выделение границ (DoG)"))
 from imagelabel import ImageLabel

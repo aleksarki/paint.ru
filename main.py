@@ -2,7 +2,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import *
 
-from dialogs import ParameterDialog, ThresholdDialog, BrightnessRangeDialog, UnsharpMaskingDialog, ConvolutionDialog
+from dialogs import ParameterDialog, ThresholdDialog, BrightnessRangeDialog, UnsharpMaskingDialog, ConvolutionDialog, \
+    DoGParametersDialog
 from main_ui import Ui_MainWindow
 import imagealgorithm as imalg
 
@@ -77,6 +78,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cornerDetectionAction.triggered.connect(self.doCornerDetection)
         self.cornerHarrisAction.triggered.connect(self.doCornerHarris)
         self.sobelEdgesAction.triggered.connect(self.doSobelEdgeDetection)
+        self.dogEdgesAction.triggered.connect(self.doDoGEdgeDetection)
 
         self.statusbar.showMessage("Готово!")
 
@@ -652,6 +654,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.updateInfoImages()
 
         self.statusbar.showMessage("Границы выделены оператором Собеля")
+
+    def doDoGEdgeDetection(self):
+        """Выделение границ методом DoG"""
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет открытого изображения")
+            return
+
+        dialog = DoGParametersDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            params = dialog.get_parameters()
+
+            # Применить метод DoG
+            edges = imalg.applyDoGEdgeDetection(
+                self.imgMatrix,
+                params['sigma1'],
+                params['sigma2']
+            )
+
+            # Показать результат
+            self.imgMatrixAdjusted = edges
+            self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+            self.updateInfoImages()
+
+            self.statusbar.showMessage(
+                f"Границы выделены методом DoG (σ₁={params['sigma1']}, σ₂={params['sigma2']})"
+            )
 
 
 if __name__ == '__main__':

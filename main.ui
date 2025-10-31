@@ -715,6 +715,7 @@
     <addaction name="cornerDetectionAction"/>
     <addaction name="cornerHarrisAction"/>
     <addaction name="sobelEdgesAction"/>
+    <addaction name="dogEdgesAction"/>
    </widget>
    <addaction name="fileMenu"/>
    <addaction name="chromaMenu"/>
@@ -831,6 +832,11 @@
   <action name="cornerHarrisAction">
    <property name="text">
     <string>Выделение углов (Харрис)</string>
+   </property>
+  </action>
+  <action name="dogEdgesAction">
+   <property name="text">
+    <string>Выделение границ (DoG)</string>
    </property>
   </action>
  </widget>

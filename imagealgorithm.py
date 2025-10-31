@@ -547,6 +547,8 @@ def cornerDetectionHarris(matrix: np.ndarray, k: float = 0.05, threshold: float 
     result[corner_map > 0] = [255, 0, 0]  # красные углы
 
     return result.astype(np.uint8)
+
+
 # new functions (3)
 def applyConvolution(
     matrix: np.ndarray, kernel: np.ndarray, normalize: bool = True, add_128: bool = False, abs_value: bool = False
@@ -606,8 +608,16 @@ def applySobelEdgeDetection(matrix: np.ndarray) -> np.ndarray:
         gray_matrix = matrix
 
     # Ядра Собеля
-    sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
-    sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
+    sobel_x = np.array([
+        [-1, 0, 1],
+        [-2, 0, 2],
+        [-1, 0, 1]
+    ])
+    sobel_y = np.array([
+        [-1, -2, -1],
+        [0, 0, 0],
+        [1, 2, 1]
+    ])
 
     # Применение свёрток
     grad_x = _convolution_single_channel(gray_matrix, sobel_x, False, False, False)
@@ -622,3 +632,19 @@ def applySobelEdgeDetection(matrix: np.ndarray) -> np.ndarray:
         result = gradient_magnitude.astype(np.uint8)
 
     return result
+
+
+def applyDoGEdgeDetection(matrix: np.ndarray, sigma1: float = 0.5, sigma2: float = 1.0) -> np.ndarray:
+    """ Выделение границ методом DoG (Difference of Gaussian). """
+    if len(matrix.shape) == 3:
+        gray_matrix = toGrayscale(matrix)
+        gray_3channel = np.stack([gray_matrix] * 3, axis=2)
+    else:
+        gray_3channel = np.stack([matrix] * 3, axis=2)
+
+    blurred1 = gaussianFilter(gray_3channel.astype(np.float32), sigma1)
+    blurred2 = gaussianFilter(gray_3channel.astype(np.float32), sigma2)
+    dog = blurred1 - blurred2
+
+    dog = np.clip(dog, 0, 255).astype(np.uint8)
+    return dog

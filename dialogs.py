@@ -414,3 +414,59 @@ class ConvolutionDialog(QDialog):
             'add_128': self.add128_check.isChecked(),
             'abs_value': self.abs_check.isChecked()
         }
+
+
+class DoGParametersDialog(QDialog):
+    """Диалог для параметров метода DoG"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("DoG - Difference of Gaussian")
+        self.setModal(True)
+
+        layout = QVBoxLayout(self)
+
+        # Параметр sigma1
+        sigma1_layout = QHBoxLayout()
+        sigma1_layout.addWidget(QLabel("σ₁ (мелкие детали):"))
+        self.sigma1_spinbox = QDoubleSpinBox()
+        self.sigma1_spinbox.setRange(0.1, 5.0)
+        self.sigma1_spinbox.setValue(0.5)
+        self.sigma1_spinbox.setSingleStep(0.1)
+        sigma1_layout.addWidget(self.sigma1_spinbox)
+        layout.addLayout(sigma1_layout)
+
+        # Параметр sigma2
+        sigma2_layout = QHBoxLayout()
+        sigma2_layout.addWidget(QLabel("σ₂ (крупные детали):"))
+        self.sigma2_spinbox = QDoubleSpinBox()
+        self.sigma2_spinbox.setRange(0.1, 5.0)
+        self.sigma2_spinbox.setValue(1.0)
+        self.sigma2_spinbox.setSingleStep(0.1)
+        sigma2_layout.addWidget(self.sigma2_spinbox)
+        layout.addLayout(sigma2_layout)
+
+        '''# Информация
+        info_label = QLabel("Разность двух гауссовых фильтров с разными σ.\n"
+                            "Меньший σ сохраняет мелкие детали, больший σ сильнее размывает.")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("color: gray; font-size: 10px;")
+        layout.addWidget(info_label)'''
+
+        # Кнопки
+        button_layout = QHBoxLayout()
+        self.ok_button = QPushButton("Применить")
+        self.cancel_button = QPushButton("Отмена")
+        button_layout.addWidget(self.ok_button)
+        button_layout.addWidget(self.cancel_button)
+        layout.addLayout(button_layout)
+
+        # Соединения
+        self.ok_button.clicked.connect(self.accept)
+        self.cancel_button.clicked.connect(self.reject)
+
+    def get_parameters(self):
+        return {
+            'sigma1': self.sigma1_spinbox.value(),
+            'sigma2': self.sigma2_spinbox.value()
+        }
