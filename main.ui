@@ -698,7 +698,6 @@
     <addaction name="medianFilterAction"/>
     <addaction name="gaussFilterAction"/>
     <addaction name="sigmaFilterAction"/>
-    <addaction name="absoluteDiffAction"/>
     <addaction name="customFilterAction"/>
    </widget>
    <widget class="QMenu" name="sharpnessMenu">
@@ -706,13 +705,15 @@
      <string>Резкость</string>
     </property>
     <addaction name="blurredMaskingAction"/>
-    <addaction name="highPassFilterAction"/>
+    <addaction name="highMeanAction"/>
+    <addaction name="highGaussianAction"/>
    </widget>
    <widget class="QMenu" name="extractMenu">
     <property name="title">
      <string>Выделение</string>
     </property>
-    <addaction name="extractAnglesAction"/>
+    <addaction name="cornerDetectionAction"/>
+    <addaction name="cornerHarrisAction"/>
     <addaction name="sobelEdgesAction"/>
    </widget>
    <addaction name="fileMenu"/>
@@ -802,14 +803,14 @@
     <string>Нерезкое маскирование</string>
    </property>
   </action>
-  <action name="highPassFilterAction">
+  <action name="highMeanAction">
    <property name="text">
-    <string>High-pass фильтр</string>
+    <string>High-pass (усреднение)</string>
    </property>
   </action>
-  <action name="extractAnglesAction">
+  <action name="cornerDetectionAction">
    <property name="text">
-    <string>Выделение углов</string>
+    <string>Выделение углов (Гессе)</string>
    </property>
   </action>
   <action name="sobelEdgesAction">
@@ -820,6 +821,16 @@
   <action name="customFilterAction">
    <property name="text">
     <string>Произвольный фильтр</string>
+   </property>
+  </action>
+  <action name="highGaussianAction">
+   <property name="text">
+    <string>High-pass (Гаусс)</string>
+   </property>
+  </action>
+  <action name="cornerHarrisAction">
+   <property name="text">
+    <string>Выделение углов (Харрис)</string>
    </property>
   </action>
  </widget>

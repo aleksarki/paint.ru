@@ -73,11 +73,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # --- Высокие частоты ---
         self.highMeanAction.triggered.connect(self.doHighPassMean)
         self.highGaussianAction.triggered.connect(self.doHighPassGaussian)
+
         self.cornerDetectionAction.triggered.connect(self.doCornerDetection)
         self.cornerHarrisAction.triggered.connect(self.doCornerHarris)
-
-
-
         self.sobelEdgesAction.triggered.connect(self.doSobelEdgeDetection)
 
         self.statusbar.showMessage("Готово!")
