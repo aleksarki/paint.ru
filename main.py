@@ -80,6 +80,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.sobelEdgesAction.triggered.connect(self.doSobelEdgeDetection)
         self.dogEdgesAction.triggered.connect(self.doDoGEdgeDetection)
 
+
+        self.segmentThresholdKMeansAction.triggered.connect(self.doSegmentKMeans)
+        self.segmentAdaptiveThresholdAction.triggered.connect(self.doSegmentAdaptive)
+
+
+
         self.statusbar.showMessage("Готово!")
 
     def updateImageInfo(self):
@@ -116,22 +122,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ))
 
     def updateInfoImages(self):
-        grayMatrix = imalg.toGrayscale(self.imgMatrixAdjusted)
+        # ---- 1. Всегда вычисляем grayscale ----
+        grayMatrix = imalg.to_gray(self.imgMatrixAdjusted)
         grayPixmap = imalg.pixmapFromMatrix(grayMatrix)
         self.setImagePixmap(self.blackWhiteImageLabel, grayPixmap)
 
+        # ---- 2. Проверяем, RGB ли изображение ----
+        if self.imgMatrixAdjusted.ndim != 3 or self.imgMatrixAdjusted.shape[2] != 3:
+            # очищаем R, G, B изображения
+            self.setImagePixmap(self.redImageLabel, QPixmap())
+            self.setImagePixmap(self.greenImageLabel, QPixmap())
+            self.setImagePixmap(self.blueImageLabel, QPixmap())
+
+            # очищаем гистограммы
+            self.setImagePixmap(self.redHistLabel, QPixmap())
+            self.setImagePixmap(self.greenHistLabel, QPixmap())
+            self.setImagePixmap(self.blueHistLabel, QPixmap())
+
+            return  # ВАЖНО: не продолжаем дальше
+
+        # ---- 3. Если RGB, то отображаем каналы ----
+
+        # R
         redMatrix = imalg.toChannel(self.imgMatrixAdjusted, 0)
         redPixmap = imalg.pixmapFromMatrix(redMatrix)
         self.setImagePixmap(self.redImageLabel, redPixmap)
 
+        # G
         greenMatrix = imalg.toChannel(self.imgMatrixAdjusted, 1)
         greenPixmap = imalg.pixmapFromMatrix(greenMatrix)
         self.setImagePixmap(self.greenImageLabel, greenPixmap)
 
+        # B
         blueMatrix = imalg.toChannel(self.imgMatrixAdjusted, 2)
         bluePixmap = imalg.pixmapFromMatrix(blueMatrix)
         self.setImagePixmap(self.blueImageLabel, bluePixmap)
 
+        # ---- 4. Гистограммы ----
         redHistPixmap = imalg.getChannelHistPixmap(self.imgMatrixAdjusted, 0, 'red')
         self.setImagePixmap(self.redHistLabel, redHistPixmap)
 
@@ -681,6 +708,102 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f"Границы выделены методом DoG (σ₁={params['sigma1']}, σ₂={params['sigma2']})"
             )
 
+    def doSegmentKMeans(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет изображения для обработки")
+            return
+
+        text, ok = QInputDialog.getText(
+            self,
+            "K-means сегментация",
+            "Введите значения k через запятую (пример: 2,3,4):"
+        )
+        if not ok:
+            return
+
+        ks = []
+        for part in text.split(","):
+            try:
+                ks.append(int(part.strip()))
+            except:
+                pass
+
+        if not ks:
+            self.statusbar.showMessage("Некорректные k")
+            return
+
+        results = {}
+        for k in ks:
+            seg = imalg.kmeans_segmentation(self.imgMatrix, k_clusters=k)
+            results[k] = seg
+
+        # показываем окно сравнения
+        dlg = CompareDialog(results)
+        dlg.exec()
+
+    def doSegmentAdaptive(self):
+        if self.imgMatrix is None:
+            self.statusbar.showMessage("Нет изображения для обработки")
+            return
+
+        # окно k
+        k, ok = QInputDialog.getInt(self, "Адаптивный порог", "Размер окна (нечётное):", 15, 3, 99, 2)
+        if not ok:
+            return
+
+        # C
+        C, ok = QInputDialog.getDouble(self, "Адаптивный порог", "Параметр C:", 5.0, -50.0, 50.0, 2)
+        if not ok:
+            return
+
+        # метод статистики
+        stat, ok = QInputDialog.getItem(
+            self,
+            "Адаптивный порог",
+            "Статистика окна:",
+            ["mean", "median", "minmax"],
+            0,
+            False
+        )
+        if not ok:
+            return
+
+        # глобальный порог T
+        T, ok = QInputDialog.getDouble(self, "Адаптивный порог", "Глобальный порог T (или -1 чтобы отключить):", -1, -1, 255)
+        if not ok:
+            return
+
+        global_T = None if T < 0 else float(T)
+
+        seg = imalg.adaptive_threshold(
+            self.imgMatrix,
+            k=k,
+            C=C,
+            local_stat=stat,
+            global_T=global_T
+        )
+
+        self.imgMatrix = seg
+        self.imgMatrixAdjusted = seg
+        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
+        self.updateInfoImages()
+        self.statusbar.showMessage("Сегментация выполнена")
+
+class CompareDialog(QDialog):
+    def __init__(self, results: dict):
+        super().__init__()
+        self.setWindowTitle("Сравнение сегментаций")
+
+        layout = QVBoxLayout()
+
+        for key, mat in results.items():
+            pix = imalg.pixmapFromMatrix(mat)
+            lab = QLabel()
+            lab.setPixmap(pix)
+            layout.addWidget(QLabel(f"k = {key}"))
+            layout.addWidget(lab)
+
+        self.setLayout(layout)
 
 if __name__ == '__main__':
     import sys

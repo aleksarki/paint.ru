@@ -62,11 +62,12 @@ def getChannelHistPixmap(matrix: np.ndarray, channel: int, color: str) -> QPixma
     pixmap = QPixmap.fromImage(image)
     return pixmap
 
-
+"""
 def toGrayscale(matrix: np.ndarray) -> np.ndarray:
     assert matrix is not None
     grayMatrix = np.dot(matrix[..., :], [.2125, .7154, .0721]).astype(np.uint8)  # 0.2125 R + 0.7154 G + 0.0721 B
     return grayMatrix
+"""
 
 
 def toChannel(matrix: np.ndarray, channel: int) -> np.ndarray:
@@ -196,7 +197,7 @@ def applyPowerTransform(matrix: np.ndarray, gamma: float) -> np.ndarray:
 
 
 def applyBinaryTransform(matrix: np.ndarray, threshold: int) -> np.ndarray:
-    gray_matrix = toGrayscale(matrix)
+    gray_matrix = to_gray(matrix)
     binary_matrix = np.where(gray_matrix >= threshold, 255, 0).astype(np.uint8)
     result_rgb = np.stack([binary_matrix, binary_matrix, binary_matrix], axis=2)
     return result_rgb
@@ -593,7 +594,7 @@ def _convolution_single_channel(
 def applySobelEdgeDetection(matrix: np.ndarray) -> np.ndarray:
     """ Оператор Собеля. """
     if len(matrix.shape) == 3:
-        gray_matrix = toGrayscale(matrix)
+        gray_matrix = to_gray(matrix)
     else:
         gray_matrix = matrix
 
@@ -626,7 +627,7 @@ def applySobelEdgeDetection(matrix: np.ndarray) -> np.ndarray:
 def applyDoGEdgeDetection(matrix: np.ndarray, sigma1: float = 0.5, sigma2: float = 1.0) -> np.ndarray:
     """ Выделение границ методом DoG (Difference of Gaussian). """
     if len(matrix.shape) == 3:
-        gray_matrix = toGrayscale(matrix)
+        gray_matrix = to_gray(matrix)
         gray_3channel = np.stack([gray_matrix] * 3, axis=2)
     else:
         gray_3channel = np.stack([matrix] * 3, axis=2)
@@ -637,3 +638,85 @@ def applyDoGEdgeDetection(matrix: np.ndarray, sigma1: float = 0.5, sigma2: float
 
     dog = np.clip(dog, 0, 255).astype(np.uint8)
     return dog
+
+
+def global_threshold(matrix: np.ndarray, T: float) -> np.ndarray:
+    gray = np.mean(matrix.astype(np.float32), axis=2)
+    out = np.zeros_like(gray, dtype=np.uint8)
+    out[gray > T] = 255
+    return out
+
+def kmeans_segmentation(matrix: np.ndarray, k_clusters: int = 2, max_iter: int = 50) -> np.ndarray:
+    gray = np.mean(matrix.astype(np.float32), axis=2)
+    h, w = gray.shape
+    pixels = gray.reshape(-1)
+
+    # инициализация центров
+    np.random.seed(1)
+    centers = np.random.choice(pixels, k_clusters, replace=False).astype(np.float32)
+
+    for _ in range(max_iter):
+        # классификация
+        distances = np.abs(pixels[:, None] - centers[None, :])
+        labels = np.argmin(distances, axis=1)
+
+        # обновление
+        new_centers = np.array([pixels[labels == k].mean() if np.any(labels == k) else centers[k]
+                                for k in range(k_clusters)], dtype=np.float32)
+
+        if np.allclose(new_centers, centers):
+            break
+        centers = new_centers
+
+    # рисуем результат: яркости = диапазон уровней кластеров
+    sorted_ids = np.argsort(centers)
+    reorder = np.zeros_like(sorted_ids)
+    reorder[sorted_ids] = np.arange(k_clusters)
+    labels = reorder[labels]
+
+    levels = np.linspace(0, 255, k_clusters).astype(np.uint8)
+    out = levels[labels].reshape(h, w)
+    return out
+
+def adaptive_threshold(matrix: np.ndarray, k: int = 15, C: float = 5.0, local_stat: str = "mean", global_T: float = None) -> np.ndarray:
+    #gray = np.mean(matrix.astype(np.float32), axis=2)
+    gray = to_gray(matrix)
+    h, w = gray.shape
+    pad = k // 2
+    padded = np.pad(gray, pad, mode="reflect")
+
+    out = np.zeros_like(gray, dtype=np.uint8)
+
+    for y in range(h):
+        for x in range(w):
+            region = padded[y:y+k, x:x+k]
+
+            if local_stat == "mean":
+                stat = np.mean(region)
+            elif local_stat == "median":
+                stat = np.median(region)
+            elif local_stat == "minmax":
+                stat = (region.min() + region.max()) * 0.5
+            else:
+                raise ValueError("local_stat must be mean, median or minmax")
+
+            T_local = stat - C
+            if global_T is not None:
+                T_local = max(T_local, global_T)
+
+            out[y, x] = 255 if gray[y, x] > T_local else 0
+
+    return out
+
+def to_gray(matrix: np.ndarray) -> np.ndarray:
+    if matrix.ndim == 3:
+        if matrix.shape[2] == 3:
+            # RGB/BGR  → weighted sum   (OpenCV BGR, но веса те же)
+            return (matrix[:, :, 0].astype(np.float32) * 0.0721 +
+                    matrix[:, :, 1].astype(np.float32) * 0.7154 +
+                    matrix[:, :, 2].astype(np.float32) * 0.2125)
+        elif matrix.shape[2] == 1:
+            return matrix[:, :, 0].astype(np.float32)
+
+
+    return matrix.astype(np.float32)
