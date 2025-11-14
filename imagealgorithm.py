@@ -409,11 +409,6 @@ def highPassFilter(matrix: np.ndarray, method: str = "mean", c: float = 1.0, sig
         raise ValueError("method должен быть 'mean' или 'gaussian'")
 
     high = matrix.astype(np.float32) - blur.astype(np.float32) * c
-
-    # решаем проблему отрицательных значений
-    min_val = high.min()
-    if min_val < 0:
-        high -= min_val
     high = np.clip(high, 0, 255)
 
     return high.astype(np.uint8)
@@ -567,23 +562,18 @@ def applyConvolution(
 
 
 def _convolution_single_channel(
-    channel: np.ndarray, kernel: np.ndarray, normalize: bool, add_128: bool, abs_value: bool
+    channel: np.ndarray, kernel: np.ndarray, normalize: bool = False, add_128: bool = False, abs_value: bool = False
 ) -> np.ndarray:
     """Свёртка для одного канала"""
     k_height, k_width = kernel.shape
     pad_h, pad_w = k_height // 2, k_width // 2
 
-    # Дополнение границ
     padded = np.pad(channel.astype(np.float32), ((pad_h, pad_h), (pad_w, pad_w)), mode='reflect')
 
-    # Вычисление суммы ядра для нормализации
+    # when normalize
     kernel_sum = np.sum(kernel)
-    if normalize and abs(kernel_sum) > 1e-6:
-        normalized_kernel = kernel / kernel_sum
-    else:
-        normalized_kernel = kernel
+    normalized_kernel = kernel / kernel_sum if normalize else kernel
 
-    # Применение свёртки
     result = np.zeros_like(channel, dtype=np.float32)
     for i in range(channel.shape[0]):
         for j in range(channel.shape[1]):
@@ -619,15 +609,14 @@ def applySobelEdgeDetection(matrix: np.ndarray) -> np.ndarray:
         [1, 2, 1]
     ])
 
-    # Применение свёрток
-    grad_x = _convolution_single_channel(gray_matrix, sobel_x, False, False, False)
-    grad_y = _convolution_single_channel(gray_matrix, sobel_y, False, False, False)
+    grad_x = _convolution_single_channel(gray_matrix, sobel_x)
+    grad_y = _convolution_single_channel(gray_matrix, sobel_y)
 
-    gradient_magnitude = np.sqrt(grad_x ** 2 + grad_y ** 2)  # Вычисление градиента
-    gradient_magnitude = np.clip(gradient_magnitude, 0, 255)  # Нормализация к диапазону [0, 255]
+    gradient_magnitude = np.sqrt(grad_x ** 2 + grad_y ** 2)
+    gradient_magnitude = np.clip(gradient_magnitude, 0, 255)
 
     if len(matrix.shape) == 3:
-        result = np.stack([gradient_magnitude] * 3, axis=2).astype(np.uint8)  # Преобразование в RGB для отображения
+        result = np.stack([gradient_magnitude] * 3, axis=2).astype(np.uint8)
     else:
         result = gradient_magnitude.astype(np.uint8)
 

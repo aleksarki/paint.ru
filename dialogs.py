@@ -230,6 +230,7 @@ class ConvolutionDialog(QDialog):
         size_layout.addWidget(QLabel("Размер матрицы (n×n):"))
         self.size_spinbox = QSpinBox()
         self.size_spinbox.setRange(1, 15)
+        self.size_spinbox.setSingleStep(2)
         self.size_spinbox.setValue(3)
         self.size_spinbox.valueChanged.connect(self.update_matrix_inputs)
         size_layout.addWidget(self.size_spinbox)
