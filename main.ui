@@ -717,11 +717,22 @@
     <addaction name="sobelEdgesAction"/>
     <addaction name="dogEdgesAction"/>
    </widget>
+   <widget class="QMenu" name="segmentMenu">
+    <property name="title">
+     <string>Сегментация</string>
+    </property>
+    <addaction name="extractEdgesAction"/>
+    <addaction name="segmentThresholdPTileAction"/>
+    <addaction name="segmentThresholdApproximAction"/>
+    <addaction name="segmentThresholdKMeansAction"/>
+    <addaction name="segmentAdaptiveThresholdAction"/>
+   </widget>
    <addaction name="fileMenu"/>
    <addaction name="chromaMenu"/>
    <addaction name="somoothMenu"/>
    <addaction name="sharpnessMenu"/>
    <addaction name="extractMenu"/>
+   <addaction name="segmentMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="loadImageAction">
@@ -837,6 +848,31 @@
   <action name="dogEdgesAction">
    <property name="text">
     <string>Выделение границ (DoG)</string>
+   </property>
+  </action>
+  <action name="extractEdgesAction">
+   <property name="text">
+    <string>Выделением краёв</string>
+   </property>
+  </action>
+  <action name="segmentThresholdPTileAction">
+   <property name="text">
+    <string>Пороговым методом на основе площади</string>
+   </property>
+  </action>
+  <action name="segmentThresholdApproximAction">
+   <property name="text">
+    <string>Пороговым методом приближениями</string>
+   </property>
+  </action>
+  <action name="segmentThresholdKMeansAction">
+   <property name="text">
+    <string>Пороговым методом (k средних)</string>
+   </property>
+  </action>
+  <action name="segmentAdaptiveThresholdAction">
+   <property name="text">
+    <string>Пороговым методом с адаптивным порогом</string>
    </property>
   </action>
  </widget>
