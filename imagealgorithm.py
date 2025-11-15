@@ -678,8 +678,10 @@ def kmeans_segmentation(matrix: np.ndarray, k_clusters: int = 2, max_iter: int =
     out = levels[labels].reshape(h, w)
     return out
 
-def adaptive_threshold(matrix: np.ndarray, k: int = 15, C: float = 5.0, local_stat: str = "mean", global_T: float = None) -> np.ndarray:
-    #gray = np.mean(matrix.astype(np.float32), axis=2)
+def adaptive_threshold(matrix: np.ndarray, k: int = 15, 
+                       local_stat: str = "mean", 
+                       T_global: float = 5.0) -> np.ndarray:
+
     gray = to_gray(matrix)
     h, w = gray.shape
     pad = k // 2
@@ -692,19 +694,15 @@ def adaptive_threshold(matrix: np.ndarray, k: int = 15, C: float = 5.0, local_st
             region = padded[y:y+k, x:x+k]
 
             if local_stat == "mean":
-                stat = np.mean(region)
+                C_local = np.mean(region)
             elif local_stat == "median":
-                stat = np.median(region)
+                C_local = np.median(region)
             elif local_stat == "minmax":
-                stat = (region.min() + region.max()) * 0.5
+                C_local = (region.min() + region.max()) * 0.5
             else:
                 raise ValueError("local_stat must be mean, median or minmax")
 
-            T_local = stat - C
-            if global_T is not None:
-                T_local = max(T_local, global_T)
-
-            out[y, x] = 255 if gray[y, x] > T_local else 0
+            out[y, x] = 255 if (gray[y, x] - C_local) > T_global else 0
 
     return out
 

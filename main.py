@@ -746,21 +746,53 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage("Нет изображения для обработки")
             return
 
-        # окно k
-        k, ok = QInputDialog.getInt(self, "Адаптивный порог", "Размер окна (нечётное):", 15, 3, 99, 2)
-        if not ok:
-            return
-
-        # C
-        C, ok = QInputDialog.getDouble(self, "Адаптивный порог", "Параметр C:", 5.0, -50.0, 50.0, 2)
-        if not ok:
-            return
-
-        # метод статистики
-        stat, ok = QInputDialog.getItem(
+        # --- ввод значений k ---
+        k_text, ok = QInputDialog.getText(
             self,
-            "Адаптивный порог",
-            "Статистика окна:",
+            "Адаптивная сегментация",
+            "Введите значения k через запятую (нечётные):\nпример: 5,11,21"
+        )
+        if not ok:
+            return
+
+        ks = []
+        for part in k_text.split(","):
+            try:
+                v = int(part.strip())
+                if v % 2 == 1 and v >= 3:
+                    ks.append(v)
+            except:
+                pass
+
+        if not ks:
+            self.statusbar.showMessage("Некорректные значения k")
+            return
+
+        # --- ввод значений T ---
+        t_text, ok = QInputDialog.getText(
+            self,
+            "Глобальный порог",
+            "Введите значения T через запятую:\nпример: 0,5,10"
+        )
+        if not ok:
+            return
+
+        Ts = []
+        for part in t_text.split(","):
+            try:
+                Ts.append(float(part.strip()))
+            except:
+                pass
+
+        if not Ts:
+            self.statusbar.showMessage("Некорректные значения T")
+            return
+
+        # --- выбор локальной статистики ---
+        method, ok = QInputDialog.getItem(
+            self,
+            "Метод вычисления C",
+            "Выберите способ вычисления C(x,y):",
             ["mean", "median", "minmax"],
             0,
             False
@@ -768,26 +800,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not ok:
             return
 
-        # глобальный порог T
-        T, ok = QInputDialog.getDouble(self, "Адаптивный порог", "Глобальный порог T (или -1 чтобы отключить):", -1, -1, 255)
-        if not ok:
-            return
+        # --- вычисляем все комбинации ---
+        results = {}
 
-        global_T = None if T < 0 else float(T)
+        for k in ks:
+            for T in Ts:
+                seg = imalg.adaptive_threshold(
+                    self.imgMatrix,
+                    k=k,
+                    local_stat=method,
+                    T_global=T
+                )
+                name = f"k={k}, T={T}, C={method}"
+                results[name] = seg
 
-        seg = imalg.adaptive_threshold(
-            self.imgMatrix,
-            k=k,
-            C=C,
-            local_stat=stat,
-            global_T=global_T
-        )
+        # --- показываем сравнение ---
+        dlg = CompareDialog(results)
+        dlg.exec()
 
-        self.imgMatrix = seg
-        self.imgMatrixAdjusted = seg
-        self.setImagePixmap(self.mainImageLabel, imalg.pixmapFromMatrix(self.imgMatrixAdjusted))
-        self.updateInfoImages()
-        self.statusbar.showMessage("Сегментация выполнена")
 
 class CompareDialog(QDialog):
     def __init__(self, results: dict):
