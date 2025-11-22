@@ -824,16 +824,29 @@ class CompareDialog(QDialog):
         super().__init__()
         self.setWindowTitle("Сравнение сегментаций")
 
-        layout = QVBoxLayout()
+        # Основной layout диалога
+        main_layout = QVBoxLayout()
 
+        # Прокручиваемая область
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+
+        # Контейнер для содержания
+        content = QWidget()
+        content_layout = QVBoxLayout(content)
+
+        # Добавляем картинки
         for key, mat in results.items():
             pix = imalg.pixmapFromMatrix(mat)
             lab = QLabel()
             lab.setPixmap(pix)
-            layout.addWidget(QLabel(f"k = {key}"))
-            layout.addWidget(lab)
+            content_layout.addWidget(QLabel(f"k = {key}"))
+            content_layout.addWidget(lab)
 
-        self.setLayout(layout)
+        scroll.setWidget(content)
+        main_layout.addWidget(scroll)
+
+        self.setLayout(main_layout)
 
 if __name__ == '__main__':
     import sys
